@@ -5,7 +5,175 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mi Tracker Personal</title>
     <link rel="icon" type="image/png" href="./icon.png">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
+        :root {
+    /* Light theme variables */
+    --bg-primary: linear-gradient(135deg, #1a1a1a 0%, #2c2c2c 50%, #1a1a1a 100%);
+    --bg-secondary: linear-gradient(135deg, #f8f9fa, #e9ecef);
+    --bg-card: linear-gradient(135deg, #ffffff, #f8f9fa);
+    --bg-header: linear-gradient(135deg, #dc3545, #000000);
+    --bg-stat: linear-gradient(135deg, #212529, #495057);
+    --text-primary: #e0e0e0;
+    --text-secondary: #212529;
+    --text-muted: #6c757d;
+    --border-color: #6c757d;
+    --accent-color: #87ceeb;
+    --danger-color: #dc3545;
+    --success-color: #87ceeb;
+}
+
+[data-theme="dark"] {
+    /* Dark theme variables */
+    --bg-primary: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 50%, #0a0a0a 100%);
+    --bg-secondary: linear-gradient(135deg, #1a1a1a, #2c2c2c);
+    --bg-card: linear-gradient(135deg, #2c2c2c, #3a3a3a);
+    --bg-header: linear-gradient(135deg, #dc3545, #000000);
+    --bg-stat: linear-gradient(135deg, #3a3a3a, #4a4a4a);
+    --text-primary: #e0e0e0;
+    --text-secondary: #e0e0e0;
+    --text-muted: #adb5bd;
+    --border-color: #495057;
+    --accent-color: #87ceeb;
+    --danger-color: #dc3545;
+    --success-color: #87ceeb;
+}
+
+[data-theme="ocean"] {
+    --bg-primary: linear-gradient(135deg, #0f3460 0%, #16537e 50%, #0f3460 100%);
+    --bg-secondary: linear-gradient(135deg, #e3f2fd, #bbdefb);
+    --bg-card: linear-gradient(135deg, #ffffff, #e1f5fe);
+    --bg-header: linear-gradient(135deg, #1976d2, #0d47a1);
+    --bg-stat: linear-gradient(135deg, #1565c0, #0d47a1);
+    --text-primary: #e3f2fd;
+    --text-secondary: #0d47a1;
+    --text-muted: #1976d2;
+    --border-color: #42a5f5;
+    --accent-color: #2196f3;
+    --danger-color: #f44336;
+    --success-color: #4caf50;
+}
+
+[data-theme="forest"] {
+    --bg-primary: linear-gradient(135deg, #1b5e20 0%, #2e7d32 50%, #1b5e20 100%);
+    --bg-secondary: linear-gradient(135deg, #e8f5e8, #c8e6c9);
+    --bg-card: linear-gradient(135deg, #ffffff, #f1f8e9);
+    --bg-header: linear-gradient(135deg, #388e3c, #1b5e20);
+    --bg-stat: linear-gradient(135deg, #2e7d32, #1b5e20);
+    --text-primary: #e8f5e8;
+    --text-secondary: #1b5e20;
+    --text-muted: #388e3c;
+    --border-color: #66bb6a;
+    --accent-color: #4caf50;
+    --danger-color: #f44336;
+    --success-color: #8bc34a;
+}
+
+[data-theme="sunset"] {
+    --bg-primary: linear-gradient(135deg, #bf360c 0%, #d84315 50%, #bf360c 100%);
+    --bg-secondary: linear-gradient(135deg, #fff3e0, #ffe0b2);
+    --bg-card: linear-gradient(135deg, #ffffff, #fff8e1);
+    --bg-header: linear-gradient(135deg, #ff5722, #bf360c);
+    --bg-stat: linear-gradient(135deg, #d84315, #bf360c);
+    --text-primary: #fff3e0;
+    --text-secondary: #bf360c;
+    --text-muted: #ff5722;
+    --border-color: #ff8a65;
+    --accent-color: #ff9800;
+    --danger-color: #f44336;
+    --success-color: #4caf50;
+}
+
+[data-theme="purple"] {
+    --bg-primary: linear-gradient(135deg, #4a148c 0%, #6a1b9a 50%, #4a148c 100%);
+    --bg-secondary: linear-gradient(135deg, #f3e5f5, #e1bee7);
+    --bg-card: linear-gradient(135deg, #ffffff, #fce4ec);
+    --bg-header: linear-gradient(135deg, #7b1fa2, #4a148c);
+    --bg-stat: linear-gradient(135deg, #6a1b9a, #4a148c);
+    --text-primary: #f3e5f5;
+    --text-secondary: #4a148c;
+    --text-muted: #7b1fa2;
+    --border-color: #ba68c8;
+    --accent-color: #9c27b0;
+    --danger-color: #f44336;
+    --success-color: #4caf50;
+}
+
+[data-theme="cyberpunk"] {
+    --bg-primary: linear-gradient(135deg, #0d1421 0%, #1a252f 50%, #0d1421 100%);
+    --bg-secondary: linear-gradient(135deg, #263238, #37474f);
+    --bg-card: linear-gradient(135deg, #1e2a3a, #2c3e50);
+    --bg-header: linear-gradient(135deg, #00bcd4, #0097a7);
+    --bg-stat: linear-gradient(135deg, #34495e, #2c3e50);
+    --text-primary: #00e5ff;
+    --text-secondary: #00e5ff;
+    --text-muted: #4dd0e1;
+    --border-color: #00acc1;
+    --accent-color: #00bcd4;
+    --danger-color: #ff1744;
+    --success-color: #00e676;
+}
+
+[data-theme="vintage"] {
+    --bg-primary: linear-gradient(135deg, #3e2723 0%, #5d4037 50%, #3e2723 100%);
+    --bg-secondary: linear-gradient(135deg, #efebe9, #d7ccc8);
+    --bg-card: linear-gradient(135deg, #ffffff, #f5f5f5);
+    --bg-header: linear-gradient(135deg, #795548, #3e2723);
+    --bg-stat: linear-gradient(135deg, #5d4037, #3e2723);
+    --text-primary: #efebe9;
+    --text-secondary: #3e2723;
+    --text-muted: #795548;
+    --border-color: #a1887f;
+    --accent-color: #8d6e63;
+    --danger-color: #f44336;
+    --success-color: #4caf50;
+}
+
+[data-theme="neon"] {
+    --bg-primary: linear-gradient(135deg, #000000 0%, #1a1a1a 50%, #000000 100%);
+    --bg-secondary: linear-gradient(135deg, #1a1a1a, #2d2d2d);
+    --bg-card: linear-gradient(135deg, #2d2d2d, #3d3d3d);
+    --bg-header: linear-gradient(135deg, #ff0080, #8000ff);
+    --bg-stat: linear-gradient(135deg, #3d3d3d, #4d4d4d);
+    --text-primary: #00ff41;
+    --text-secondary: #00ff41;
+    --text-muted: #ff0080;
+    --border-color: #8000ff;
+    --accent-color: #00ffff;
+    --danger-color: #ff0040;
+    --success-color: #00ff80;
+}
+
+[data-theme="pastel"] {
+    --bg-primary: linear-gradient(135deg, #fce4ec 0%, #f8bbd9 50%, #fce4ec 100%);
+    --bg-secondary: linear-gradient(135deg, #fff9c4, #f0f4c3);
+    --bg-card: linear-gradient(135deg, #ffffff, #fafafa);
+    --bg-header: linear-gradient(135deg, #f48fb1, #e91e63);
+    --bg-stat: linear-gradient(135deg, #c8e6c9, #a5d6a7);
+    --text-primary: #4a4a4a;
+    --text-secondary: #2e2e2e;
+    --text-muted: #757575;
+    --border-color: #e0e0e0;
+    --accent-color: #81c784;
+    --danger-color: #ef5350;
+    --success-color: #66bb6a;
+}
+
+[data-theme="monochrome"] {
+    --bg-primary: linear-gradient(135deg, #212121 0%, #424242 50%, #212121 100%);
+    --bg-secondary: linear-gradient(135deg, #f5f5f5, #e0e0e0);
+    --bg-card: linear-gradient(135deg, #ffffff, #fafafa);
+    --bg-header: linear-gradient(135deg, #616161, #212121);
+    --bg-stat: linear-gradient(135deg, #424242, #212121);
+    --text-primary: #f5f5f5;
+    --text-secondary: #212121;
+    --text-muted: #757575;
+    --border-color: #9e9e9e;
+    --accent-color: #757575;
+    --danger-color: #424242;
+    --success-color: #616161;
+}
+
         * {
             margin: 0;
             padding: 0;
@@ -14,9 +182,10 @@
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #1a1a1a 0%, #2c2c2c 50%, #1a1a1a 100%);
+            background: var(--bg-primary);
             min-height: 100vh;
-            color: #e0e0e0;
+            color: var(--text-primary);
+            transition: all 0.3s ease;
         }
 
         .container {
@@ -29,10 +198,11 @@
             text-align: center;
             color: white;
             margin-bottom: 30px;
-            background: linear-gradient(135deg, #dc3545, #000000);
+            background: var(--bg-header);
             padding: 30px;
             border-radius: 15px;
             box-shadow: 0 8px 25px rgba(220, 53, 69, 0.3);
+            position: relative;
         }
 
         .header h1 {
@@ -40,6 +210,31 @@
             margin-bottom: 10px;
             text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
         }
+
+        .theme-toggle {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: rgba(255, 255, 255, 0.2);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 25px;
+    padding: 8px 15px;
+    color: white;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 14px;
+    min-width: 150px;
+}
+
+.theme-toggle:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: scale(1.05);
+}
+
+.theme-toggle option {
+    background: #2c2c2c;
+    color: white;
+}
 
         .header-actions {
             margin-top: 20px;
@@ -60,7 +255,7 @@
         .tab-btn {
             background: linear-gradient(135deg, #6c757d, #495057);
             color: white;
-            border: 2px solid #87ceeb;
+            border: 2px solid var(--accent-color);
             padding: 12px 20px;
             border-radius: 25px;
             cursor: pointer;
@@ -70,13 +265,13 @@
         }
 
         .tab-btn:hover {
-            background: linear-gradient(135deg, #87ceeb, #5f9ea0);
+            background: linear-gradient(135deg, var(--accent-color), #5f9ea0);
             transform: translateY(-2px);
             box-shadow: 0 5px 15px rgba(135, 206, 235, 0.4);
         }
 
         .tab-btn.active {
-            background: linear-gradient(135deg, #87ceeb, #5f9ea0);
+            background: linear-gradient(135deg, var(--accent-color), #5f9ea0);
             color: #000;
             font-weight: bold;
             box-shadow: 0 5px 15px rgba(135, 206, 235, 0.4);
@@ -84,12 +279,13 @@
 
         .tab-content {
             display: none;
-            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            background: var(--bg-secondary);
             border-radius: 15px;
             padding: 30px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-            border: 2px solid #6c757d;
-            color: #212529;
+            border: 2px solid var(--border-color);
+            color: var(--text-secondary);
+            transition: all 0.3s ease;
         }
 
         .tab-content.active {
@@ -107,13 +303,13 @@
 
         .section-title {
             font-size: 1.8rem;
-            color: #dc3545;
+            color: var(--danger-color);
             margin: 0;
             text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
         }
 
         .btn {
-            background: linear-gradient(135deg, #dc3545, #c82333);
+            background: linear-gradient(135deg, var(--danger-color), #c82333);
             color: white;
             border: none;
             padding: 10px 20px;
@@ -132,7 +328,7 @@
         }
 
         .btn-success {
-            background: linear-gradient(135deg, #87ceeb, #5f9ea0);
+            background: linear-gradient(135deg, var(--success-color), #5f9ea0);
             color: #000;
         }
 
@@ -151,11 +347,196 @@
         }
 
         .btn-danger {
-            background: linear-gradient(135deg, #dc3545, #c82333);
+            background: linear-gradient(135deg, var(--danger-color), #c82333);
         }
 
         .btn-danger:hover {
             background: linear-gradient(135deg, #c82333, #a71e2a);
+        }
+
+        .btn-small {
+            padding: 5px 10px;
+            font-size: 12px;
+            border-radius: 5px;
+        }
+
+        .btn-mini {
+            padding: 2px 6px;
+            font-size: 10px;
+            border-radius: 3px;
+            margin-left: 5px;
+        }
+
+        /* Charts Section */
+        .charts-section {
+            margin-bottom: 30px;
+        }
+
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .chart-card {
+            background: var(--bg-card);
+            border-radius: 10px;
+            padding: 20px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .chart-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        .chart-card h3 {
+            color: var(--text-secondary);
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 250px;
+        }
+
+        /* Category Management */
+        .category-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .category-select {
+            flex: 1;
+        }
+
+        .category-list {
+            margin-top: 10px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+        }
+
+        .category-tag {
+            background: linear-gradient(135deg, #6c757d, #495057);
+            color: white;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            border: 1px solid var(--accent-color);
+        }
+
+        .category-tag .remove-btn {
+            background: var(--danger-color);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 16px;
+            height: 16px;
+            font-size: 10px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Achievements Section */
+        .achievements-section {
+            background: var(--bg-card);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 30px;
+            border: 2px solid var(--accent-color);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .achievements-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .achievement-card {
+            background: var(--bg-secondary);
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .achievement-card.unlocked {
+            border-color: #ffd700;
+            background: linear-gradient(135deg, #fff3cd, #ffeaa7);
+            animation: glow 2s infinite alternate;
+        }
+
+        .achievement-card.locked {
+            opacity: 0.6;
+            filter: grayscale(50%);
+        }
+
+        @keyframes glow {
+            from { box-shadow: 0 0 5px #ffd700; }
+            to { box-shadow: 0 0 20px #ffd700, 0 0 30px #ffd700; }
+        }
+
+        .achievement-icon {
+            font-size: 2rem;
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        .achievement-title {
+            font-weight: bold;
+            color: var(--text-secondary);
+            margin-bottom: 5px;
+        }
+
+        .achievement-description {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        /* Achievement notification */
+        .achievement-notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, #ffd700, #ffed4e);
+            color: #000;
+            padding: 15px 20px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(255, 215, 0, 0.5);
+            z-index: 10000;
+            transform: translateX(400px);
+            transition: transform 0.5s ease;
+            max-width: 300px;
+        }
+
+        .achievement-notification.show {
+            transform: translateX(0);
+        }
+
+        .achievement-notification h4 {
+            margin-bottom: 5px;
+            font-size: 16px;
+        }
+
+        .achievement-notification p {
+            font-size: 14px;
+            margin: 0;
         }
 
         .form-group {
@@ -166,7 +547,7 @@
             display: block;
             margin-bottom: 5px;
             font-weight: bold;
-            color: #212529;
+            color: var(--text-secondary);
         }
 
         .form-group input,
@@ -174,19 +555,19 @@
         .form-group textarea {
             width: 100%;
             padding: 10px;
-            border: 2px solid #6c757d;
+            border: 2px solid var(--border-color);
             border-radius: 8px;
             font-size: 14px;
             transition: border-color 0.3s ease;
-            background: white;
-            color: #212529;
+            background: var(--bg-card);
+            color: var(--text-secondary);
         }
 
         .form-group input:focus,
         .form-group select:focus,
         .form-group textarea:focus {
             outline: none;
-            border-color: #87ceeb;
+            border-color: var(--accent-color);
             box-shadow: 0 0 0 3px rgba(135, 206, 235, 0.2);
         }
 
@@ -214,21 +595,21 @@
             flex-direction: column;
             align-items: center;
             padding: 8px;
-            border: 2px solid #6c757d;
+            border: 2px solid var(--border-color);
             border-radius: 8px;
             cursor: pointer;
             transition: all 0.3s ease;
-            background: white;
+            background: var(--bg-card);
         }
 
         .day-checkbox:hover {
-            border-color: #87ceeb;
-            background: #f8f9fa;
+            border-color: var(--accent-color);
+            background: var(--bg-secondary);
         }
 
         .day-checkbox.selected {
-            border-color: #87ceeb;
-            background: linear-gradient(135deg, #87ceeb, #5f9ea0);
+            border-color: var(--accent-color);
+            background: linear-gradient(135deg, var(--accent-color), #5f9ea0);
             color: white;
         }
 
@@ -260,7 +641,7 @@
         }
 
         .modal-content {
-            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            background: var(--bg-secondary);
             margin: 5% auto;
             padding: 30px;
             border-radius: 15px;
@@ -269,7 +650,7 @@
             max-height: 80vh;
             overflow-y: auto;
             position: relative;
-            border: 2px solid #6c757d;
+            border: 2px solid var(--border-color);
             box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
         }
 
@@ -280,7 +661,7 @@
             font-size: 28px;
             font-weight: bold;
             cursor: pointer;
-            color: #dc3545;
+            color: var(--danger-color);
             transition: color 0.3s ease;
         }
 
@@ -295,19 +676,19 @@
         }
 
         .item-card {
-            background: linear-gradient(135deg, #ffffff, #f8f9fa);
+            background: var(--bg-card);
             border-radius: 10px;
             padding: 20px;
-            border-left: 4px solid #dc3545;
+            border-left: 4px solid var(--danger-color);
             transition: all 0.3s ease;
-            border: 1px solid #dee2e6;
+            border: 1px solid var(--border-color);
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
         }
 
         .item-card:hover {
             transform: translateY(-2px);
             box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
-            border-left-color: #87ceeb;
+            border-left-color: var(--accent-color);
         }
 
         .item-header {
@@ -322,19 +703,13 @@
         .item-title {
             font-size: 1.2rem;
             font-weight: bold;
-            color: #212529;
+            color: var(--text-secondary);
             margin: 0;
         }
 
         .item-actions {
             display: flex;
             gap: 10px;
-        }
-
-        .btn-small {
-            padding: 5px 10px;
-            font-size: 12px;
-            border-radius: 5px;
         }
 
         .stats-grid {
@@ -345,20 +720,26 @@
         }
 
         .stat-card {
-            background: linear-gradient(135deg, #212529, #495057);
+            background: var(--bg-stat);
             color: white;
             padding: 20px;
             border-radius: 10px;
             text-align: center;
-            border: 2px solid #87ceeb;
+            border: 2px solid var(--accent-color);
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
         }
 
         .stat-number {
             font-size: 2rem;
             font-weight: bold;
             margin-bottom: 5px;
-            color: #87ceeb;
+            color: var(--accent-color);
         }
 
         .stat-label {
@@ -376,12 +757,18 @@
 
         /* Habit Calendar Styles - Más compacto */
         .habit-card {
-            background: linear-gradient(135deg, #ffffff, #f8f9fa);
+            background: var(--bg-card);
             border-radius: 10px;
             padding: 12px;
-            border-left: 4px solid #dc3545;
-            border: 1px solid #dee2e6;
+            border-left: 4px solid var(--danger-color);
+            border: 1px solid var(--border-color);
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .habit-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
         }
 
         .habit-header {
@@ -394,13 +781,13 @@
 
         .habit-info h3 {
             margin: 0;
-            color: #212529;
+            color: var(--text-secondary);
             font-size: 1rem;
         }
 
         .habit-info p {
             margin: 2px 0;
-            color: #6c757d;
+            color: var(--text-muted);
             font-size: 12px;
         }
 
@@ -412,7 +799,7 @@
         }
 
         .habit-day-tag {
-            background: linear-gradient(135deg, #87ceeb, #5f9ea0);
+            background: linear-gradient(135deg, var(--accent-color), #5f9ea0);
             color: #000;
             padding: 2px 6px;
             border-radius: 8px;
@@ -443,8 +830,8 @@
         }
 
         .calendar-day.header {
-            background: linear-gradient(135deg, #212529, #495057);
-            color: #87ceeb;
+            background: var(--bg-stat);
+            color: var(--accent-color);
             cursor: default;
             font-size: 8px;
         }
@@ -454,38 +841,47 @@
         }
 
         .calendar-day.current-month {
-            background: #e9ecef;
-            color: #212529;
-            border-color: #dee2e6;
+            background: var(--bg-secondary);
+            color: var(--text-secondary);
+            border-color: var(--border-color);
         }
 
         .calendar-day.current-month:hover {
-            background: #dee2e6;
-            border-color: #87ceeb;
+            background: var(--bg-card);
+            border-color: var(--accent-color);
         }
 
         .calendar-day.completed {
-            background: linear-gradient(135deg, #87ceeb, #5f9ea0);
-            color: #000;
-            font-weight: bold;
-        }
+    background: linear-gradient(135deg, var(--accent-color), #5f9ea0);
+    color: #000;
+    font-weight: bold;
+    box-shadow: 0 2px 8px rgba(135, 206, 235, 0.6);
+    transform: scale(1.1);
+    border: 2px solid var(--success-color);
+}
+
+.calendar-day.completed:hover {
+    background: linear-gradient(135deg, #5f9ea0, var(--accent-color));
+    transform: scale(1.15);
+    box-shadow: 0 4px 12px rgba(135, 206, 235, 0.8);
+}
 
         .calendar-day.today {
-            border-color: #dc3545;
+            border-color: var(--danger-color);
             border-width: 2px;
             font-weight: bold;
         }
 
         .calendar-day.disabled {
-            background: #f8f9fa;
-            color: #adb5bd;
+            background: var(--bg-card);
+            color: var(--text-muted);
             cursor: not-allowed;
         }
 
         .calendar-day.available {
-            background: #e9ecef;
-            color: #212529;
-            border-color: #dee2e6;
+            background: var(--bg-secondary);
+            color: var(--text-secondary);
+            border-color: var(--border-color);
         }
 
         .habit-stats {
@@ -493,7 +889,7 @@
             justify-content: space-between;
             margin-top: 6px;
             font-size: 11px;
-            color: #6c757d;
+            color: var(--text-muted);
             flex-wrap: wrap;
             gap: 3px;
         }
@@ -508,7 +904,7 @@
 
         .finance-tab {
             background: linear-gradient(135deg, #6c757d, #495057);
-            border: 2px solid #87ceeb;
+            border: 2px solid var(--accent-color);
             padding: 10px 20px;
             border-radius: 8px;
             cursor: pointer;
@@ -518,27 +914,27 @@
         }
 
         .finance-tab.active {
-            background: linear-gradient(135deg, #87ceeb, #5f9ea0);
+            background: linear-gradient(135deg, var(--accent-color), #5f9ea0);
             color: #000;
             font-weight: bold;
         }
 
         .finance-summary {
-            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            background: var(--bg-secondary);
             padding: 20px;
             border-radius: 10px;
             margin-bottom: 20px;
-            border: 1px solid #dee2e6;
+            border: 1px solid var(--border-color);
         }
 
         .balance-card {
-            background: linear-gradient(135deg, #212529, #495057);
+            background: var(--bg-stat);
             color: white;
             padding: 20px;
             border-radius: 10px;
             text-align: center;
             margin-bottom: 20px;
-            border: 2px solid #87ceeb;
+            border: 2px solid var(--accent-color);
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
         }
 
@@ -546,28 +942,28 @@
             font-size: 2.5rem;
             font-weight: bold;
             margin-bottom: 5px;
-            color: #87ceeb;
+            color: var(--accent-color);
         }
 
         .income-card {
-            border-left-color: #87ceeb;
+            border-left-color: var(--accent-color);
         }
 
         .expense-card {
-            border-left-color: #dc3545;
+            border-left-color: var(--danger-color);
         }
 
         .progress-bar {
-            background: #e9ecef;
+            background: var(--bg-secondary);
             border-radius: 10px;
             height: 8px;
             overflow: hidden;
             margin: 10px 0;
-            border: 1px solid #dee2e6;
+            border: 1px solid var(--border-color);
         }
 
         .progress-fill {
-            background: linear-gradient(135deg, #87ceeb, #5f9ea0);
+            background: linear-gradient(135deg, var(--accent-color), #5f9ea0);
             height: 100%;
             transition: width 0.3s ease;
         }
@@ -579,7 +975,7 @@
 
         .star {
             font-size: 20px;
-            color: #dee2e6;
+            color: var(--border-color);
             cursor: pointer;
             transition: color 0.2s ease;
         }
@@ -596,21 +992,21 @@
             font-size: 12px;
             display: inline-block;
             margin: 2px;
-            border: 1px solid #87ceeb;
+            border: 1px solid var(--accent-color);
         }
 
         .download-section {
-            background: linear-gradient(135deg, #212529, #495057);
+            background: var(--bg-stat);
             padding: 20px;
             border-radius: 10px;
             margin-bottom: 20px;
             text-align: center;
-            border: 2px solid #87ceeb;
+            border: 2px solid var(--accent-color);
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
         }
 
         .download-section h3 {
-            color: #87ceeb;
+            color: var(--accent-color);
             margin-bottom: 15px;
         }
 
@@ -634,6 +1030,13 @@
 
             .header h1 {
                 font-size: 2rem;
+            }
+
+            .theme-toggle {
+                position: static;
+                margin: 10px auto 0;
+                display: block;
+                width: fit-content;
             }
 
             .modal-content {
@@ -677,12 +1080,33 @@
                 grid-template-columns: repeat(4, 1fr);
                 gap: 5px;
             }
+
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .achievements-grid {
+                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
+            <select class="theme-toggle" onchange="changeTheme(this.value)">
+    <option value="light">☀️ Claro</option>
+    <option value="dark">🌙 Oscuro</option>
+    <option value="ocean">🌊 Océano</option>
+    <option value="forest">🌲 Bosque</option>
+    <option value="sunset">🌅 Atardecer</option>
+    <option value="purple">💜 Púrpura</option>
+    <option value="cyberpunk">🤖 Cyberpunk</option>
+    <option value="vintage">📜 Vintage</option>
+    <option value="neon">⚡ Neón</option>
+    <option value="pastel">🌸 Pastel</option>
+    <option value="monochrome">⚫ Monocromo</option>
+</select>
             <h1>🎯 Mi Tracker Personal</h1>
             <p>Organiza tu vida, alcanza tus metas</p>
             <div class="header-actions">
@@ -699,6 +1123,7 @@
             <button class="tab-btn" onclick="showTab('books')">📚 Libros</button>
             <button class="tab-btn" onclick="showTab('courses')">🎓 Cursos</button>
             <button class="tab-btn" onclick="showTab('journal')">📝 Journal</button>
+            <button class="tab-btn" onclick="showTab('achievements')">🏆 Logros</button>
         </div>
 
         <!-- Dashboard Tab -->
@@ -717,9 +1142,66 @@
             <div class="stats-grid" id="statsGrid">
                 <!-- Stats will be populated by JavaScript -->
             </div>
+
+            <!-- Charts Section -->
+            <div class="charts-section">
+                <h3 style="color: var(--text-secondary); margin-bottom: 20px;">📈 Análisis Visual</h3>
+                <div class="charts-grid">
+                    <div class="chart-card">
+                        <h3>📊 Hábitos por Categoría</h3>
+                        <div class="chart-container">
+                            <canvas id="habitsChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="chart-card">
+                        <h3>💰 Balance Financiero (6 meses)</h3>
+                        <div class="chart-container">
+                            <canvas id="financeChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="chart-card">
+                        <h3>📈 Progreso de Hábitos (7 días)</h3>
+                        <div class="chart-container">
+                            <canvas id="progressChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="chart-card">
+                        <h3>😊 Estado de Ánimo</h3>
+                        <div class="chart-container">
+                            <canvas id="moodChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="chart-card">
+                        <h3>📖 Libros por Género</h3>
+                        <div class="chart-container">
+                            <canvas id="bookGenreChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="chart-card">
+            <h3>🎬 Películas/Series del Mes</h3>
+            <div class="chart-container">
+                <canvas id="monthlyCompletedChart"></canvas>
+            </div>
+        </div>
+                </div>
+            </div>
+
             <div id="recentActivity">
-                <h3>📈 Actividad Reciente</h3>
+                <h3 style="color: var(--text-secondary);">📈 Actividad Reciente</h3>
                 <div id="recentItems"></div>
+            </div>
+        </div>
+
+        <!-- Achievements Tab -->
+        <div id="achievements" class="tab-content">
+            <div class="achievements-section">
+                <h2 class="section-title">🏆 Mis Logros</h2>
+                <p style="color: var(--text-secondary); margin-bottom: 20px;">
+                    Desbloquea logros completando diferentes actividades en tu tracker personal.
+                </p>
+                <div class="achievements-grid" id="achievementsList">
+                    <!-- Achievements will be populated by JavaScript -->
+                </div>
             </div>
         </div>
 
@@ -813,6 +1295,12 @@
         </div>
     </div>
 
+    <!-- Achievement Notification -->
+    <div id="achievementNotification" class="achievement-notification">
+        <h4 id="achievementTitle">🏆 ¡Logro Desbloqueado!</h4>
+        <p id="achievementText"></p>
+    </div>
+
     <!-- Upload Modal -->
     <div id="uploadModal" class="modal">
         <div class="modal-content">
@@ -822,9 +1310,28 @@
                 <label for="fileInput">Selecciona tu archivo de respaldo (.json):</label>
                 <input type="file" id="fileInput" accept=".json" onchange="loadDataFromFile(event)">
             </div>
-            <p style="color: #6c757d; font-size: 14px; margin-top: 10px;">
+            <p style="color: var(--text-muted); font-size: 14px; margin-top: 10px;">
                 ⚠️ Esto reemplazará todos tus datos actuales con los del archivo de respaldo.
             </p>
+        </div>
+    </div>
+
+    <!-- Category Management Modal -->
+    <div id="categoryModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('categoryModal')">&times;</span>
+            <h2 id="categoryModalTitle">Gestionar Categorías</h2>
+            <div class="form-group">
+                <label for="newCategoryName">Nueva Categoría:</label>
+                <input type="text" id="newCategoryName" placeholder="Nombre de la categoría">
+                <button class="btn btn-success" onclick="addNewCategory()" style="margin-top: 10px;">Agregar</button>
+            </div>
+            <div class="form-group">
+                <label>Categorías Existentes:</label>
+                <div id="existingCategories" class="category-list">
+                    <!-- Categories will be populated by JavaScript -->
+                </div>
+            </div>
         </div>
     </div>
 
@@ -853,13 +1360,16 @@
                     </div>
                     <div class="form-group">
                         <label for="habitCategory">Categoría:</label>
-                        <select id="habitCategory">
-                            <option value="limpieza">Limpieza</option>
-                            <option value="fisico">Físico</option>
-                            <option value="conocimiento">Conocimiento</option>
-                            <option value="habito">Hábito</option>
-                            <option value="otro">Otro</option>
-                        </select>
+                        <div class="category-group">
+                            <select id="habitCategory" class="category-select">
+                                <option value="limpieza">Limpieza</option>
+                                <option value="fisico">Físico</option>
+                                <option value="conocimiento">Conocimiento</option>
+                                <option value="habito">Hábito</option>
+                                <option value="otro">Otro</option>
+                            </select>
+                            <button type="button" class="btn btn-secondary btn-small" onclick="openCategoryManager('habit')">Gestionar</button>
+                        </div>
                     </div>
                 </div>
                 <div class="form-group" id="daysSelector" style="display: none;">
@@ -930,14 +1440,17 @@
                 <div class="form-row">
                     <div class="form-group">
                         <label for="incomeCategory">Categoría:</label>
-                        <select id="incomeCategory">
-                            <option value="salario">Salario</option>
-                            <option value="freelance">Freelance</option>
-                            <option value="inversion">Inversión</option>
-                            <option value="regalo">Regalo</option>
-                            <option value="venta">Venta</option>
-                            <option value="otros">Otros</option>
-                        </select>
+                        <div class="category-group">
+                            <select id="incomeCategory" class="category-select">
+                                <option value="salario">Salario</option>
+                                <option value="freelance">Freelance</option>
+                                <option value="inversion">Inversión</option>
+                                <option value="regalo">Regalo</option>
+                                <option value="venta">Venta</option>
+                                <option value="otros">Otros</option>
+                            </select>
+                            <button type="button" class="btn btn-secondary btn-small" onclick="openCategoryManager('income')">Gestionar</button>
+                        </div>
                     </div>
                     <div class="form-group">
                         <label for="incomeRecurring">¿Es recurrente?</label>
@@ -977,16 +1490,19 @@
                 <div class="form-row">
                     <div class="form-group">
                         <label for="expenseCategory">Categoría:</label>
-                        <select id="expenseCategory">
-                            <option value="comida">Comida</option>
-                            <option value="transporte">Transporte</option>
-                            <option value="entretenimiento">Entretenimiento</option>
-                            <option value="salud">Salud</option>
-                            <option value="educacion">Educación</option>
-                            <option value="servicios">Servicios</option>
-                            <option value="ropa">Ropa</option>
-                            <option value="otros">Otros</option>
-                        </select>
+                        <div class="category-group">
+                            <select id="expenseCategory" class="category-select">
+                                <option value="comida">Comida</option>
+                                <option value="transporte">Transporte</option>
+                                <option value="entretenimiento">Entretenimiento</option>
+                                <option value="salud">Salud</option>
+                                <option value="educacion">Educación</option>
+                                <option value="servicios">Servicios</option>
+                                <option value="ropa">Ropa</option>
+                                <option value="otros">Otros</option>
+                            </select>
+                            <button type="button" class="btn btn-secondary btn-small" onclick="openCategoryManager('expense')">Gestionar</button>
+                        </div>
                     </div>
                     <div class="form-group">
                         <label for="expensePayment">Método de Pago:</label>
@@ -1228,12 +1744,760 @@
             media: JSON.parse(localStorage.getItem('media')) || [],
             books: JSON.parse(localStorage.getItem('books')) || [],
             courses: JSON.parse(localStorage.getItem('courses')) || [],
-            journal: JSON.parse(localStorage.getItem('journal')) || []
+            journal: JSON.parse(localStorage.getItem('journal')) || [],
+            achievements: JSON.parse(localStorage.getItem('achievements')) || [],
+            settings: JSON.parse(localStorage.getItem('settings')) || { theme: 'light' },
+            customCategories: JSON.parse(localStorage.getItem('customCategories')) || {
+                habit: [],
+                income: [],
+                expense: []
+            }
         };
+
+        // Charts variables
+        let habitsChart, financeChart, progressChart, moodChart, bookGenreChart, monthlyCompletedChart;
+
+        // Current category management context
+        let currentCategoryType = '';
+
+        // Default categories
+        const defaultCategories = {
+            habit: ['limpieza', 'fisico', 'conocimiento', 'habito', 'otro'],
+            income: ['salario', 'freelance', 'inversion', 'regalo', 'venta', 'otros'],
+            expense: ['comida', 'transporte', 'entretenimiento', 'salud', 'educacion', 'servicios', 'ropa', 'otros']
+        };
+
+        // Achievements definitions
+        const achievementDefinitions = [
+            {
+                id: 'first_habit',
+                title: '🎯 Primer Paso',
+                description: 'Crea tu primer hábito',
+                icon: '🎯',
+                condition: () => data.habits.length >= 1
+            },
+            {
+                id: 'week_streak',
+                title: '🔥 Una Semana Fuerte',
+                description: 'Mantén un hábito por 7 días seguidos',
+                icon: '🔥',
+                condition: () => {
+                    return data.habits.some(habit => {
+                        const stats = getHabitStats(habit);
+                        return stats.streak >= 7;
+                    });
+                }
+            },
+            {
+                id: 'month_streak',
+                title: '💪 Mes de Hierro',
+                description: 'Mantén un hábito por 30 días seguidos',
+                icon: '💪',
+                condition: () => {
+                    return data.habits.some(habit => {
+                        const stats = getHabitStats(habit);
+                        return stats.streak >= 30;
+                    });
+                }
+            },
+            {
+                id: 'five_habits',
+                title: '⚡ Multitarea',
+                description: 'Ten 5 hábitos activos',
+                icon: '⚡',
+                condition: () => data.habits.length >= 5
+            },
+            {
+                id: 'first_income',
+                title: '💰 Primer Ingreso',
+                description: 'Registra tu primer ingreso',
+                icon: '💰',
+                condition: () => data.incomes.length >= 1
+            },
+            {
+                id: 'positive_balance',
+                title: '📈 En Verde',
+                description: 'Mantén un balance positivo',
+                icon: '📈',
+                condition: () => {
+                    const totalIncomes = data.incomes.reduce((sum, income) => sum + parseFloat(income.amount), 0);
+                    const totalExpenses = data.expenses.reduce((sum, expense) => sum + parseFloat(expense.amount), 0);
+                    return totalIncomes > totalExpenses;
+                }
+            },
+            {
+                id: 'first_book',
+                title: '📚 Bibliófilo',
+                description: 'Agrega tu primer libro',
+                icon: '📚',
+                condition: () => data.books.length >= 1
+            },
+            {
+                id: 'ten_books',
+                title: '📖 Biblioteca Personal',
+                description: 'Ten 10 libros en tu biblioteca',
+                icon: '📖',
+                condition: () => data.books.length >= 10
+            },
+            {
+                id: 'first_course',
+                title: '🎓 Estudiante',
+                description: 'Comienza tu primer curso',
+                icon: '🎓',
+                condition: () => data.courses.length >= 1
+            },
+            {
+                id: 'completed_course',
+                title: '🏆 Graduado',
+                description: 'Completa un curso al 100%',
+                icon: '🏆',
+                condition: () => data.courses.some(course => parseInt(course.progress) >= 100)
+            },
+            {
+                id: 'first_journal',
+                title: '📝 Reflexivo',
+                description: 'Escribe tu primera entrada de journal',
+                icon: '📝',
+                condition: () => data.journal.length >= 1
+            },
+            {
+                id: 'week_journal',
+                title: '📔 Semana Reflexiva',
+                description: 'Escribe en tu journal por 7 días seguidos',
+                icon: '📔',
+                condition: () => {
+                    if (data.journal.length < 7) return false;
+                    const sortedEntries = data.journal.sort((a, b) => new Date(b.date) - new Date(a.date));
+                    let streak = 0;
+                    let currentDate = new Date();
+                    
+                    for (let i = 0; i < sortedEntries.length; i++) {
+                        const entryDate = new Date(sortedEntries[i].date);
+                        const diffDays = Math.floor((currentDate - entryDate) / (1000 * 60 * 60 * 24));
+                        
+                        if (diffDays === streak) {
+                            streak++;
+                            if (streak >= 7) return true;
+                        } else {
+                            break;
+                        }
+                    }
+                    return false;
+                }
+            },
+            {
+                id: 'movie_critic',
+                title: '🎬 Crítico de Cine',
+                description: 'Agrega 5 películas o series',
+                icon: '🎬',
+                condition: () => data.media.length >= 5
+            },
+            {
+                id: 'balanced_life',
+                title: '⚖️ Vida Equilibrada',
+                description: 'Ten al menos 1 elemento en cada categoría',
+                icon: '⚖️',
+                condition: () => {
+                    return data.habits.length >= 1 && 
+                           data.incomes.length >= 1 && 
+                           data.books.length >= 1 && 
+                           data.courses.length >= 1 && 
+                           data.journal.length >= 1 && 
+                           data.media.length >= 1;
+                }
+            },
+            {
+                id: 'data_master',
+                title: '📊 Maestro de Datos',
+                description: 'Descarga tu primer reporte',
+                icon: '📊',
+                condition: () => localStorage.getItem('reportDownloaded') === 'true'
+            },
+{
+    id: 'habit_master',
+    title: '🎯 Maestro de Hábitos',
+    description: 'Ten 10 hábitos activos',
+    icon: '🎯',
+    condition: () => data.habits.length >= 10
+},
+{
+    id: 'three_month_streak',
+    title: '🔥 Trimestre Perfecto',
+    description: 'Mantén un hábito por 90 días seguidos',
+    icon: '🔥',
+    condition: () => {
+        return data.habits.some(habit => {
+            const stats = getHabitStats(habit);
+            return stats.streak >= 90;
+        });
+    }
+},
+{
+    id: 'big_spender',
+    title: '💸 Gran Gastador',
+    description: 'Registra gastos por más de $1000 en un mes',
+    icon: '💸',
+    condition: () => {
+        const currentMonth = new Date().getMonth();
+        const currentYear = new Date().getFullYear();
+        const monthlyExpenses = data.expenses.filter(expense => {
+            const expenseDate = new Date(expense.date);
+            return expenseDate.getMonth() === currentMonth && expenseDate.getFullYear() === currentYear;
+        });
+        const total = monthlyExpenses.reduce((sum, expense) => sum + parseFloat(expense.amount), 0);
+        return total > 1000;
+    }
+},
+{
+    id: 'bookworm',
+    title: '🐛 Ratón de Biblioteca',
+    description: 'Lee 5 libros (estado: terminado)',
+    icon: '🐛',
+    condition: () => data.books.filter(book => book.status === 'terminado').length >= 5
+},
+{
+    id: 'movie_marathon',
+    title: '🍿 Maratón de Películas',
+    description: 'Completa 20 películas o series',
+    icon: '🍿',
+    condition: () => data.media.filter(item => item.status === 'completada').length >= 20
+},
+{
+    id: 'scholar',
+    title: '🎓 Académico',
+    description: 'Completa 3 cursos al 100%',
+    icon: '🎓',
+    condition: () => data.courses.filter(course => parseInt(course.progress) >= 100).length >= 3
+},
+{
+    id: 'daily_writer',
+    title: '✍️ Escritor Diario',
+    description: 'Escribe en tu journal por 30 días seguidos',
+    icon: '✍️',
+    condition: () => {
+        if (data.journal.length < 30) return false;
+        const sortedEntries = data.journal.sort((a, b) => new Date(b.date) - new Date(a.date));
+        let streak = 0;
+        let currentDate = new Date();
+        
+        for (let i = 0; i < sortedEntries.length; i++) {
+            const entryDate = new Date(sortedEntries[i].date);
+            const diffDays = Math.floor((currentDate - entryDate) / (1000 * 60 * 60 * 24));
+            
+            if (diffDays === streak) {
+                streak++;
+                if (streak >= 30) return true;
+            } else {
+                break;
+            }
+        }
+        return false;
+    }
+},
+{
+    id: 'saver',
+    title: '💰 Ahorrador',
+    description: 'Mantén un balance positivo de más de $500',
+    icon: '💰',
+    condition: () => {
+        const totalIncomes = data.incomes.reduce((sum, income) => sum + parseFloat(income.amount), 0);
+        const totalExpenses = data.expenses.reduce((sum, expense) => sum + parseFloat(expense.amount), 0);
+        return (totalIncomes - totalExpenses) > 500;
+    }
+},
+{
+    id: 'genre_explorer',
+    title: '🎭 Explorador de Géneros',
+    description: 'Lee libros de 5 géneros diferentes',
+    icon: '🎭',
+    condition: () => {
+        const genres = new Set(data.books.map(book => book.genre).filter(genre => genre));
+        return genres.size >= 5;
+    }
+},
+{
+    id: 'mood_tracker',
+    title: '😊 Rastreador de Ánimo',
+    description: 'Registra 50 entradas de journal',
+    icon: '😊',
+    condition: () => data.journal.length >= 50
+},
+{
+    id: 'consistent',
+    title: '📅 Consistente',
+    description: 'Completa al menos un hábito por 7 días seguidos',
+    icon: '📅',
+    condition: () => {
+        const last7Days = [];
+        for (let i = 0; i < 7; i++) {
+            const date = new Date();
+            date.setDate(date.getDate() - i);
+            last7Days.push(date.toISOString().split('T')[0]);
+        }
+        
+        return last7Days.every(day => {
+            return data.habits.some(habit => 
+                habit.completedDates && habit.completedDates.includes(day)
+            );
+        });
+    }
+},
+{
+    id: 'organizer',
+    title: '📋 Organizador',
+    description: 'Usa todas las categorías del tracker',
+    icon: '📋',
+    condition: () => {
+        return data.habits.length >= 1 && 
+               data.incomes.length >= 1 && 
+               data.expenses.length >= 1 &&
+               data.books.length >= 1 && 
+               data.courses.length >= 1 && 
+               data.journal.length >= 1 && 
+               data.media.length >= 1;
+    }
+}
+        ];
+
+        // Category Management Functions
+        function openCategoryManager(type) {
+            currentCategoryType = type;
+            document.getElementById('categoryModalTitle').textContent = `Gestionar Categorías - ${type === 'habit' ? 'Hábitos' : type === 'income' ? 'Ingresos' : 'Gastos'}`;
+            loadExistingCategories();
+            openModal('categoryModal');
+        }
+
+        function loadExistingCategories() {
+            const container = document.getElementById('existingCategories');
+            container.innerHTML = '';
+            
+            const allCategories = [...defaultCategories[currentCategoryType], ...data.customCategories[currentCategoryType]];
+            
+            allCategories.forEach(category => {
+                const isCustom = data.customCategories[currentCategoryType].includes(category);
+                const categoryElement = document.createElement('div');
+                categoryElement.className = 'category-tag';
+                categoryElement.innerHTML = `
+                    ${category}
+                    ${isCustom ? `<button class="remove-btn" onclick="removeCategory('${category}')">&times;</button>` : ''}
+                `;
+                container.appendChild(categoryElement);
+            });
+        }
+
+        function addNewCategory() {
+            const newCategoryName = document.getElementById('newCategoryName').value.trim();
+            if (!newCategoryName) {
+                alert('Por favor ingresa un nombre para la categoría');
+                return;
+            }
+            
+            const allCategories = [...defaultCategories[currentCategoryType], ...data.customCategories[currentCategoryType]];
+            if (allCategories.includes(newCategoryName.toLowerCase())) {
+                alert('Esta categoría ya existe');
+                return;
+            }
+            
+            data.customCategories[currentCategoryType].push(newCategoryName.toLowerCase());
+            saveData('customCategories');
+            loadExistingCategories();
+            updateCategorySelect(currentCategoryType);
+            document.getElementById('newCategoryName').value = '';
+        }
+
+        function removeCategory(categoryName) {
+            if (confirm(`¿Estás seguro de que quieres eliminar la categoría "${categoryName}"?`)) {
+                const index = data.customCategories[currentCategoryType].indexOf(categoryName);
+                if (index > -1) {
+                    data.customCategories[currentCategoryType].splice(index, 1);
+                    saveData('customCategories');
+                    loadExistingCategories();
+                    updateCategorySelect(currentCategoryType);
+                }
+            }
+        }
+
+        function updateCategorySelect(type) {
+            const selectId = type === 'habit' ? 'habitCategory' : type === 'income' ? 'incomeCategory' : 'expenseCategory';
+            const select = document.getElementById(selectId);
+            if (!select) return;
+            
+            const currentValue = select.value;
+            select.innerHTML = '';
+            
+            const allCategories = [...defaultCategories[type], ...data.customCategories[type]];
+            allCategories.forEach(category => {
+                const option = document.createElement('option');
+                option.value = category;
+                option.textContent = category.charAt(0).toUpperCase() + category.slice(1);
+                select.appendChild(option);
+            });
+            
+            if (allCategories.includes(currentValue)) {
+                select.value = currentValue;
+            }
+        }
+
+        // Theme functionality
+        function changeTheme(theme) {
+    document.documentElement.setAttribute('data-theme', theme);
+    data.settings.theme = theme;
+    localStorage.setItem('settings', JSON.stringify(data.settings));
+}
+
+function initializeTheme() {
+    const savedTheme = data.settings.theme || 'light';
+    document.documentElement.setAttribute('data-theme', savedTheme);
+    
+    const themeSelect = document.querySelector('.theme-toggle');
+    themeSelect.value = savedTheme;
+}
 
         // Save data to localStorage
         function saveData(type) {
             localStorage.setItem(type, JSON.stringify(data[type]));
+        }
+
+        // Achievement system
+        function checkAchievements() {
+            let newAchievements = [];
+            
+            achievementDefinitions.forEach(achievement => {
+                const isUnlocked = data.achievements.includes(achievement.id);
+                const conditionMet = achievement.condition();
+                
+                if (!isUnlocked && conditionMet) {
+                    data.achievements.push(achievement.id);
+                    newAchievements.push(achievement);
+                }
+            });
+            
+            if (newAchievements.length > 0) {
+                saveData('achievements');
+                newAchievements.forEach(achievement => {
+                    showAchievementNotification(achievement);
+                });
+            }
+        }
+
+        function showAchievementNotification(achievement) {
+            const notification = document.getElementById('achievementNotification');
+            const title = document.getElementById('achievementTitle');
+            const text = document.getElementById('achievementText');
+            
+            title.textContent = `${achievement.icon} ¡Logro Desbloqueado!`;
+            text.textContent = achievement.title + ' - ' + achievement.description;
+            
+            notification.classList.add('show');
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 4000);
+        }
+
+        function loadAchievements() {
+            const achievementsList = document.getElementById('achievementsList');
+            achievementsList.innerHTML = '';
+            
+            achievementDefinitions.forEach(achievement => {
+                const isUnlocked = data.achievements.includes(achievement.id);
+                const conditionMet = achievement.condition();
+                
+                const achievementElement = document.createElement('div');
+                achievementElement.className = `achievement-card ${isUnlocked ? 'unlocked' : 'locked'}`;
+                achievementElement.innerHTML = `
+                    <div class="achievement-icon">${achievement.icon}</div>
+                    <div class="achievement-title">${achievement.title}</div>
+                    <div class="achievement-description">${achievement.description}</div>
+                    ${isUnlocked ? '<div style="color: #ffd700; font-weight: bold; margin-top: 5px;">✓ Desbloqueado</div>' : ''}
+                `;
+                achievementsList.appendChild(achievementElement);
+            });
+        }
+
+        // Charts functionality
+        function createHabitsChart() {
+            const ctx = document.getElementById('habitsChart').getContext('2d');
+            
+            // Count habits by category
+            const categories = {};
+            data.habits.forEach(habit => {
+                categories[habit.category] = (categories[habit.category] || 0) + 1;
+            });
+            
+            if (habitsChart) habitsChart.destroy();
+            
+            habitsChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(categories),
+                    datasets: [{
+                        data: Object.values(categories),
+                        backgroundColor: [
+                            '#87ceeb',
+                            '#dc3545',
+                            '#ffd700',
+                            '#28a745',
+                            '#6f42c1',
+                            '#fd7e14'
+                        ],
+                        borderWidth: 2,
+                        borderColor: '#fff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+        }
+
+        function createFinanceChart() {
+            const ctx = document.getElementById('financeChart').getContext('2d');
+            
+            // Get last 6 months data
+            const months = [];
+            const incomeData = [];
+            const expenseData = [];
+            
+            for (let i = 5; i >= 0; i--) {
+                const date = new Date();
+                date.setMonth(date.getMonth() - i);
+                const monthYear = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+                
+                const monthIncomes = data.incomes.filter(income => income.date.startsWith(monthYear));
+                const monthExpenses = data.expenses.filter(expense => expense.date.startsWith(monthYear));
+                
+                const totalIncome = monthIncomes.reduce((sum, income) => sum + parseFloat(income.amount), 0);
+                const totalExpense = monthExpenses.reduce((sum, expense) => sum + parseFloat(expense.amount), 0);
+                
+                months.push(date.toLocaleDateString('es-ES', { month: 'short', year: '2-digit' }));
+                incomeData.push(totalIncome);
+                expenseData.push(totalExpense);
+            }
+            
+            if (financeChart) financeChart.destroy();
+            
+            financeChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: months,
+                    datasets: [{
+                        label: 'Ingresos',
+                        data: incomeData,
+                        backgroundColor: '#87ceeb',
+                        borderColor: '#5f9ea0',
+                        borderWidth: 1
+                    }, {
+                        label: 'Gastos',
+                        data: expenseData,
+                        backgroundColor: '#dc3545',
+                        borderColor: '#c82333',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+
+        function createProgressChart() {
+            const ctx = document.getElementById('progressChart').getContext('2d');
+            
+            // Get last 7 days
+            const days = [];
+            const completionData = [];
+            
+            for (let i = 6; i >= 0; i--) {
+                const date = new Date();
+                date.setDate(date.getDate() - i);
+                const dateStr = date.toISOString().split('T')[0];
+                
+                let completedHabits = 0;
+                data.habits.forEach(habit => {
+                    if (habit.completedDates && habit.completedDates.includes(dateStr)) {
+                        completedHabits++;
+                    }
+                });
+                
+                days.push(date.toLocaleDateString('es-ES', { weekday: 'short' }));
+                completionData.push(completedHabits);
+            }
+            
+            if (progressChart) progressChart.destroy();
+            
+            progressChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: days,
+                    datasets: [{
+                        label: 'Hábitos Completados',
+                        data: completionData,
+                        borderColor: '#87ceeb',
+                        backgroundColor: 'rgba(135, 206, 235, 0.1)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            stepSize: 1
+                        }
+                    }
+                }
+            });
+        }
+
+        function createMoodChart() {
+            const ctx = document.getElementById('moodChart').getContext('2d');
+            
+            // Count moods
+            const moods = {};
+            data.journal.forEach(entry => {
+                const mood = entry.mood;
+                moods[mood] = (moods[mood] || 0) + 1;
+            });
+            
+            if (moodChart) moodChart.destroy();
+            
+            moodChart = new Chart(ctx, {
+                type: 'polarArea',
+                data: {
+                    labels: Object.keys(moods),
+                    datasets: [{
+                        data: Object.values(moods),
+                        backgroundColor: [
+                            '#ffd700',
+                            '#87ceeb',
+                            '#6c757d',
+                            '#dc3545',
+                            '#fd7e14'
+                        ],
+                        borderWidth: 2,
+                        borderColor: '#fff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+        }
+
+        function createBookGenreChart() {
+            const ctx = document.getElementById('bookGenreChart').getContext('2d');
+            
+            // Count books by genre
+            const genres = {};
+            data.books.forEach(book => {
+                if (book.genre) {
+                    genres[book.genre] = (genres[book.genre] || 0) + 1;
+                }
+            });
+            
+            if (bookGenreChart) bookGenreChart.destroy();
+            
+            bookGenreChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: Object.keys(genres),
+                    datasets: [{
+                        label: 'Cantidad',
+                        data: Object.values(genres),
+                        backgroundColor: '#87ceeb',
+                        borderColor: '#5f9ea0',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            stepSize: 1
+                        }
+                    }
+                }
+            });
+        }
+
+        function createMonthlyCompletedChart() {
+    const ctx = document.getElementById('monthlyCompletedChart').getContext('2d');
+    
+    const currentMonth = new Date().getMonth();
+    const currentYear = new Date().getFullYear();
+    
+    // Get completed media this month
+    const completedMedia = data.media.filter(item => {
+        if (item.status === 'completada' && item.createdAt) {
+            const date = new Date(item.createdAt);
+            return date.getMonth() === currentMonth && date.getFullYear() === currentYear;
+        }
+        return false;
+    });
+    
+    if (monthlyCompletedChart) monthlyCompletedChart.destroy();
+    
+    monthlyCompletedChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: completedMedia.map(item => item.title.length > 15 ? item.title.substring(0, 15) + '...' : item.title),
+            datasets: [{
+                label: 'Completadas este mes',
+                data: completedMedia.map(() => 1),
+                backgroundColor: completedMedia.map(item => item.type === 'pelicula' ? '#87ceeb' : '#dc3545'),
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    stepSize: 1,
+                    max: Math.max(1, completedMedia.length)
+                }
+            },
+            plugins: {
+                legend: {
+                    display: false
+                }
+            }
+        }
+    });
+}
+
+        function updateAllCharts() {
+            createHabitsChart();
+            createFinanceChart();
+            createProgressChart();
+            createMoodChart();
+            createBookGenreChart();
+            createMonthlyCompletedChart();
         }
 
         // Get month name in Spanish
@@ -1398,6 +2662,21 @@
             }
             report += `\nTotal de entradas: ${data.journal.length}\n`;
 
+            // LOGROS SECTION
+            report += `\n🏆 LOGROS\n`;
+            report += `${'-'.repeat(20)}\n`;
+            report += `Logros desbloqueados: ${data.achievements.length}/${achievementDefinitions.length}\n\n`;
+            
+            if (data.achievements.length > 0) {
+                report += `Logros obtenidos:\n`;
+                data.achievements.forEach(achievementId => {
+                    const achievement = achievementDefinitions.find(a => a.id === achievementId);
+                    if (achievement) {
+                        report += `• ${achievement.icon} ${achievement.title}\n`;
+                    }
+                });
+            }
+
             // RESUMEN FINAL
             report += `\n🎯 RESUMEN DEL MES\n`;
             report += `${'-'.repeat(20)}\n`;
@@ -1405,6 +2684,7 @@
             report += `• Balance financiero: $${balance.toFixed(2)}\n`;
             report += `• Nuevo contenido agregado: ${monthlyMedia.length + monthlyBooks.length + monthlyCourses.length} elementos\n`;
             report += `• Entradas de journal: ${monthlyJournal.length}\n`;
+            report += `• Logros desbloqueados: ${data.achievements.length}\n`;
             
             report += `\n${'='.repeat(50)}\n`;
             report += `Reporte generado el ${today.toLocaleDateString('es-ES')}\n`;
@@ -1426,6 +2706,10 @@
             link.href = URL.createObjectURL(blob);
             link.download = `${monthName}-${year}.txt`;
             link.click();
+            
+            // Mark report as downloaded for achievement
+            localStorage.setItem('reportDownloaded', 'true');
+            checkAchievements();
             
             alert(`📄 Reporte de ${monthName} ${year} descargado exitosamente!`);
         }
@@ -1483,13 +2767,22 @@
                         data.books = importedData.books || [];
                         data.courses = importedData.courses || [];
                         data.journal = importedData.journal || [];
+                        data.achievements = importedData.achievements || [];
+                        data.customCategories = importedData.customCategories || {
+                            habit: [],
+                            income: [],
+                            expense: []
+                        };
 
                         Object.keys(data).forEach(key => {
-                            localStorage.setItem(key, JSON.stringify(data[key]));
+                            if (key !== 'settings') {
+                                localStorage.setItem(key, JSON.stringify(data[key]));
+                            }
                         });
 
                         closeModal('uploadModal');
                         loadDashboard();
+                        checkAchievements();
                         
                         alert('✅ Datos cargados exitosamente!\n\nTodos tus datos han sido restaurados desde el archivo de respaldo.');
                     }
@@ -1512,13 +2805,16 @@
             document.getElementById(tabName).classList.add('active');
             event.target.classList.add('active');
 
-            if (tabName === 'dashboard') loadDashboard();
-            else if (tabName === 'habits') loadHabits();
+            if (tabName === 'dashboard') {
+                loadDashboard();
+                updateAllCharts();
+            } else if (tabName === 'habits') loadHabits();
             else if (tabName === 'finances') loadFinances();
             else if (tabName === 'media') loadMedia();
             else if (tabName === 'books') loadBooks();
             else if (tabName === 'courses') loadCourses();
             else if (tabName === 'journal') loadJournal();
+            else if (tabName === 'achievements') loadAchievements();
         }
 
         // Finance tab functionality
@@ -1553,6 +2849,15 @@
             dateInputs.forEach(input => {
                 if (!input.value) input.value = today;
             });
+
+            // Update category selects when opening modals
+            if (modalId === 'habitModal') {
+                updateCategorySelect('habit');
+            } else if (modalId === 'incomeModal') {
+                updateCategorySelect('income');
+            } else if (modalId === 'expenseModal') {
+                updateCategorySelect('expense');
+            }
         }
 
         function closeModal(modalId) {
@@ -1682,6 +2987,7 @@
 
             saveData('habits');
             loadHabits();
+            checkAchievements();
         }
 
         function getHabitStats(habit) {
@@ -1781,6 +3087,7 @@
                 data.habits.splice(index, 1);
                 saveData('habits');
                 loadHabits();
+                checkAchievements();
             }
         }
 
@@ -1847,24 +3154,24 @@
                 </div>
                 
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
-                    <div style="background: linear-gradient(135deg, #ffffff, #f8f9fa); padding: 20px; border-radius: 10px; border: 1px solid #dee2e6;">
-                        <h4 style="color: #87ceeb; margin-bottom: 15px;">💚 Ingresos por Categoría</h4>
+                    <div style="background: var(--bg-card); padding: 20px; border-radius: 10px; border: 1px solid var(--border-color);">
+                        <h4 style="color: var(--accent-color); margin-bottom: 15px;">💚 Ingresos por Categoría</h4>
                         ${Object.entries(incomeCategories).map(([category, total]) => 
-                            `<div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                            `<div style="display: flex; justify-content: space-between; margin-bottom: 8px; color: var(--text-secondary);">
                                 <span>${category}:</span>
                                 <strong>$${total.toFixed(2)}</strong>
                             </div>`
-                        ).join('') || '<p>No hay ingresos este mes</p>'}
+                        ).join('') || '<p style="color: var(--text-secondary);">No hay ingresos este mes</p>'}
                     </div>
                     
-                    <div style="background: linear-gradient(135deg, #ffffff, #f8f9fa); padding: 20px; border-radius: 10px; border: 1px solid #dee2e6;">
-                        <h4 style="color: #dc3545; margin-bottom: 15px;">💸 Gastos por Categoría</h4>
+                    <div style="background: var(--bg-card); padding: 20px; border-radius: 10px; border: 1px solid var(--border-color);">
+                        <h4 style="color: var(--danger-color); margin-bottom: 15px;">💸 Gastos por Categoría</h4>
                         ${Object.entries(expenseCategories).map(([category, total]) => 
-                            `<div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                            `<div style="display: flex; justify-content: space-between; margin-bottom: 8px; color: var(--text-secondary);">
                                 <span>${category}:</span>
                                 <strong>$${total.toFixed(2)}</strong>
                             </div>`
-                        ).join('') || '<p>No hay gastos este mes</p>'}
+                        ).join('') || '<p style="color: var(--text-secondary);">No hay gastos este mes</p>'}
                     </div>
                 </div>
             `;
@@ -1921,6 +3228,7 @@
                 updateBalance();
                 loadIncomes();
                 loadFinanceSummary();
+                checkAchievements();
             }
         }
 
@@ -1931,6 +3239,7 @@
                 updateBalance();
                 loadExpenses();
                 loadFinanceSummary();
+                checkAchievements();
             }
         }
 
@@ -1965,6 +3274,7 @@
                 data.media.splice(index, 1);
                 saveData('media');
                 loadMedia();
+                checkAchievements();
             }
         }
 
@@ -2000,6 +3310,7 @@
                 data.books.splice(index, 1);
                 saveData('books');
                 loadBooks();
+                checkAchievements();
             }
         }
 
@@ -2038,196 +3349,208 @@
                 data.courses.splice(index, 1);
                 saveData('courses');
                 loadCourses();
+                checkAchievements();
             }
         }
 
         // Journal functions
         function loadJournal() {
-            const journalList = document.getElementById('journalList');
-            journalList.innerHTML = '';
+    const journalList = document.getElementById('journalList');
+    journalList.innerHTML = '';
 
-            data.journal.sort((a, b) => new Date(b.date) - new Date(a.date)).forEach((entry, index) => {
-                const journalElement = document.createElement('div');
-                journalElement.className = 'item-card';
-                journalElement.innerHTML = `
-                    <div class="item-header">
-                        <h3 class="item-title">${entry.mood} ${entry.title || 'Entrada del ' + entry.date}</h3>
-                        <div class="item-actions">
-                            <button class="btn btn-danger btn-small" onclick="deleteJournalEntry(${index})">Eliminar</button>
-                        </div>
-                    </div>
-                    <p><strong>Fecha:</strong> ${entry.date}</p>
-                    <p><strong>Reflexiones:</strong> ${entry.content}</p>
-                    ${entry.gratitude ? `<p><strong>Gratitud:</strong> ${entry.gratitude}</p>` : ''}
-                    <p><strong>Energía:</strong> ${entry.energy}/10 | <strong>Sueño:</strong> ${entry.sleep}/10</p>
-                `;
-                journalList.appendChild(journalElement);
-            });
+    data.journal.sort((a, b) => new Date(b.date) - new Date(a.date)).forEach((entry, index) => {
+        const journalElement = document.createElement('div');
+        journalElement.className = 'item-card';
+        journalElement.innerHTML = `
+            <div class="item-header">
+                <h3 class="item-title">${entry.mood} ${entry.title || 'Entrada del ' + entry.date}</h3>
+                <div class="item-actions">
+                    <button class="btn btn-danger btn-small" onclick="deleteJournalEntry(${index})">Eliminar</button>
+                </div>
+            </div>
+            <p><strong>Fecha:</strong> ${entry.date}</p>
+            <p><strong>Reflexiones:</strong> ${entry.content}</p>
+            ${entry.gratitude ? `<p><strong>Gratitud:</strong> ${entry.gratitude}</p>` : ''}
+            <p><strong>Energía:</strong> ${entry.energy}/10 | <strong>Sueño:</strong> ${entry.sleep}/10</p>
+        `;
+        journalList.appendChild(journalElement);
+    });
+}
+
+function deleteJournalEntry(index) {
+    if (confirm('¿Estás seguro de que quieres eliminar esta entrada?')) {
+        data.journal.splice(index, 1);
+        saveData('journal');
+        loadJournal();
+        checkAchievements();
+    }
+}
+
+// Form submissions
+document.getElementById('habitForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const frequency = document.getElementById('habitFrequency').value;
+    let allowedDays = [];
+    
+    if (frequency === 'custom') {
+        const selectedDays = document.querySelectorAll('.day-checkbox input:checked');
+        allowedDays = Array.from(selectedDays).map(input => parseInt(input.value));
+        
+        if (allowedDays.length === 0) {
+            alert('Por favor selecciona al menos un día de la semana.');
+            return;
         }
+    }
+    
+    const habit = {
+        id: Date.now().toString(),
+        name: document.getElementById('habitName').value,
+        description: document.getElementById('habitDescription').value,
+        frequency: frequency,
+        category: document.getElementById('habitCategory').value,
+        allowedDays: allowedDays,
+        completedDates: [],
+        createdAt: new Date().toISOString()
+    };
+    
+    data.habits.push(habit);
+    saveData('habits');
+    closeModal('habitModal');
+    loadHabits();
+    checkAchievements();
+});
 
-        function deleteJournalEntry(index) {
-            if (confirm('¿Estás seguro de que quieres eliminar esta entrada?')) {
-                data.journal.splice(index, 1);
-                saveData('journal');
-                loadJournal();
-            }
-        }
+document.getElementById('incomeForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const income = {
+        id: Date.now(),
+        amount: document.getElementById('incomeAmount').value,
+        date: document.getElementById('incomeDate').value,
+        description: document.getElementById('incomeDescription').value,
+        category: document.getElementById('incomeCategory').value,
+        recurring: document.getElementById('incomeRecurring').value,
+        createdAt: new Date().toISOString()
+    };
+    data.incomes.push(income);
+    saveData('incomes');
+    closeModal('incomeModal');
+    updateBalance();
+    loadIncomes();
+    loadFinanceSummary();
+    checkAchievements();
+});
 
-        // Form submissions
-        document.getElementById('habitForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            const frequency = document.getElementById('habitFrequency').value;
-            let allowedDays = [];
-            
-            if (frequency === 'custom') {
-                const selectedDays = document.querySelectorAll('.day-checkbox input:checked');
-                allowedDays = Array.from(selectedDays).map(input => parseInt(input.value));
-                
-                if (allowedDays.length === 0) {
-                    alert('Por favor selecciona al menos un día de la semana.');
-                    return;
-                }
-            }
-            
-            const habit = {
-                id: Date.now().toString(),
-                name: document.getElementById('habitName').value,
-                description: document.getElementById('habitDescription').value,
-                frequency: frequency,
-                category: document.getElementById('habitCategory').value,
-                allowedDays: allowedDays,
-                completedDates: [],
-                createdAt: new Date().toISOString()
-            };
-            
-            data.habits.push(habit);
-            saveData('habits');
-            closeModal('habitModal');
-            loadHabits();
-        });
+document.getElementById('expenseForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const expense = {
+        id: Date.now(),
+        amount: document.getElementById('expenseAmount').value,
+        date: document.getElementById('expenseDate').value,
+        description: document.getElementById('expenseDescription').value,
+        category: document.getElementById('expenseCategory').value,
+        payment: document.getElementById('expensePayment').value,
+        createdAt: new Date().toISOString()
+    };
+    data.expenses.push(expense);
+    saveData('expenses');
+    closeModal('expenseModal');
+    updateBalance();
+    loadExpenses();
+    loadFinanceSummary();
+    checkAchievements();
+});
 
-        document.getElementById('incomeForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            const income = {
-                id: Date.now(),
-                amount: document.getElementById('incomeAmount').value,
-                date: document.getElementById('incomeDate').value,
-                description: document.getElementById('incomeDescription').value,
-                category: document.getElementById('incomeCategory').value,
-                recurring: document.getElementById('incomeRecurring').value,
-                createdAt: new Date().toISOString()
-            };
-            data.incomes.push(income);
-            saveData('incomes');
-            closeModal('incomeModal');
-            updateBalance();
-            loadIncomes();
-            loadFinanceSummary();
-        });
+document.getElementById('mediaForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const media = {
+        id: Date.now(),
+        title: document.getElementById('mediaTitle').value,
+        type: document.getElementById('mediaType').value,
+        year: document.getElementById('mediaYear').value,
+        genre: document.getElementById('mediaGenre').value,
+        platform: document.getElementById('mediaPlatform').value,
+        status: document.getElementById('mediaStatus').value,
+        rating: document.getElementById('mediaRating').value,
+        review: document.getElementById('mediaReview').value,
+        createdAt: new Date().toISOString()
+    };
+    data.media.push(media);
+    saveData('media');
+    closeModal('mediaModal');
+    loadMedia();
+    checkAchievements();
+});
 
-        document.getElementById('expenseForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            const expense = {
-                id: Date.now(),
-                amount: document.getElementById('expenseAmount').value,
-                date: document.getElementById('expenseDate').value,
-                description: document.getElementById('expenseDescription').value,
-                category: document.getElementById('expenseCategory').value,
-                payment: document.getElementById('expensePayment').value,
-                createdAt: new Date().toISOString()
-            };
-            data.expenses.push(expense);
-            saveData('expenses');
-            closeModal('expenseModal');
-            updateBalance();
-            loadExpenses();
-            loadFinanceSummary();
-        });
+document.getElementById('bookForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const book = {
+        id: Date.now(),
+        title: document.getElementById('bookTitle').value,
+        author: document.getElementById('bookAuthor').value,
+        pages: document.getElementById('bookPages').value,
+        genre: document.getElementById('bookGenre').value,
+        format: document.getElementById('bookFormat').value,
+        status: document.getElementById('bookStatus').value,
+        rating: document.getElementById('bookRating').value,
+        notes: document.getElementById('bookNotes').value,
+        createdAt: new Date().toISOString()
+    };
+    data.books.push(book);
+    saveData('books');
+    closeModal('bookModal');
+    loadBooks();
+    checkAchievements();
+});
 
-        document.getElementById('mediaForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            const media = {
-                id: Date.now(),
-                title: document.getElementById('mediaTitle').value,
-                type: document.getElementById('mediaType').value,
-                year: document.getElementById('mediaYear').value,
-                genre: document.getElementById('mediaGenre').value,
-                platform: document.getElementById('mediaPlatform').value,
-                status: document.getElementById('mediaStatus').value,
-                rating: document.getElementById('mediaRating').value,
-                review: document.getElementById('mediaReview').value,
-                createdAt: new Date().toISOString()
-            };
-            data.media.push(media);
-            saveData('media');
-            closeModal('mediaModal');
-            loadMedia();
-        });
+document.getElementById('courseForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const course = {
+        id: Date.now(),
+        name: document.getElementById('courseName').value,
+        instructor: document.getElementById('courseInstructor').value,
+        platform: document.getElementById('coursePlatform').value,
+        duration: document.getElementById('courseDuration').value,
+        progress: document.getElementById('courseProgress').value,
+        status: document.getElementById('courseStatus').value,
+        rating: document.getElementById('courseRating').value,
+        skills: document.getElementById('courseSkills').value,
+        createdAt: new Date().toISOString()
+    };
+    data.courses.push(course);
+    saveData('courses');
+    closeModal('courseModal');
+    loadCourses();
+    checkAchievements();
+});
 
-        document.getElementById('bookForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            const book = {
-                id: Date.now(),
-                title: document.getElementById('bookTitle').value,
-                author: document.getElementById('bookAuthor').value,
-                pages: document.getElementById('bookPages').value,
-                genre: document.getElementById('bookGenre').value,
-                format: document.getElementById('bookFormat').value,
-                status: document.getElementById('bookStatus').value,
-                rating: document.getElementById('bookRating').value,
-                notes: document.getElementById('bookNotes').value,
-                createdAt: new Date().toISOString()
-            };
-            data.books.push(book);
-            saveData('books');
-            closeModal('bookModal');
-            loadBooks();
-        });
+document.getElementById('journalForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const journal = {
+        id: Date.now(),
+        date: document.getElementById('journalDate').value,
+        mood: document.getElementById('journalMood').value,
+        title: document.getElementById('journalTitle').value,
+        content: document.getElementById('journalContent').value,
+        gratitude: document.getElementById('journalGratitude').value,
+        energy: document.getElementById('journalEnergy').value,
+        sleep: document.getElementById('journalSleep').value,
+        createdAt: new Date().toISOString()
+    };
+    data.journal.push(journal);
+    saveData('journal');
+    closeModal('journalModal');
+    loadJournal();
+    checkAchievements();
+});
 
-        document.getElementById('courseForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            const course = {
-                id: Date.now(),
-                name: document.getElementById('courseName').value,
-                instructor: document.getElementById('courseInstructor').value,
-                platform: document.getElementById('coursePlatform').value,
-                duration: document.getElementById('courseDuration').value,
-                progress: document.getElementById('courseProgress').value,
-                status: document.getElementById('courseStatus').value,
-                rating: document.getElementById('courseRating').value,
-                skills: document.getElementById('courseSkills').value,
-                createdAt: new Date().toISOString()
-            };
-            data.courses.push(course);
-            saveData('courses');
-            closeModal('courseModal');
-            loadCourses();
-        });
-
-        document.getElementById('journalForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            const journal = {
-                id: Date.now(),
-                date: document.getElementById('journalDate').value,
-                mood: document.getElementById('journalMood').value,
-                title: document.getElementById('journalTitle').value,
-                content: document.getElementById('journalContent').value,
-                gratitude: document.getElementById('journalGratitude').value,
-                energy: document.getElementById('journalEnergy').value,
-                sleep: document.getElementById('journalSleep').value,
-                createdAt: new Date().toISOString()
-            };
-            data.journal.push(journal);
-            saveData('journal');
-            closeModal('journalModal');
-            loadJournal();
-        });
-
-        // Initialize the app
-        document.addEventListener('DOMContentLoaded', function() {
-            loadDashboard();
-        });
+// Initialize the app
+document.addEventListener('DOMContentLoaded', function() {
+    initializeTheme();
+    loadDashboard();
+    updateAllCharts();
+    checkAchievements();
+});
     </script>
 </body>
 </html>
