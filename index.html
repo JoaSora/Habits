@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mi Tracker Personal</title>
-    <link rel="icon" type="image/png" href="./icon.png">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
@@ -1089,6 +1088,12 @@
                 grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
             }
         }
+        .calendar-day.assigned {
+    background-color: var(--accent-color-light);
+    color: white;
+    border: 2px dashed var(--accent-color);
+}
+
     </style>
 </head>
 <body>
@@ -1207,10 +1212,14 @@
 
         <!-- Habits Tab -->
         <div id="habits" class="tab-content">
-            <div class="section-header">
-                <h2 class="section-title">✅ Mis Hábitos</h2>
-                <button class="btn" onclick="openModal('habitModal')">+ Nuevo Hábito</button>
-            </div>
+           <div class="section-header">
+    <h2 class="section-title">✅ Mis Hábitos</h2>
+    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+        <button class="btn" onclick="openModal('habitModal')">+ Nuevo Hábito</button>
+        <button class="btn btn-secondary" onclick="mostrarTodosLosHabitos()">👁️ Ver Todos</button>
+    </div>
+</div>
+
             <div class="habits-grid" id="habitsList">
                 <!-- Habits will be populated by JavaScript -->
             </div>
@@ -2257,6 +2266,50 @@ function initializeTheme() {
             });
         }
 
+function createHabitCard(habit) {
+    const card = document.createElement('div');
+    card.className = 'habit-card';
+
+    const header = document.createElement('div');
+    header.className = 'habit-header';
+
+    const info = document.createElement('div');
+    info.className = 'habit-info';
+
+    info.innerHTML = `
+        <h3>${habit.name}</h3>
+        <p><strong>Categoría:</strong> ${habit.category || 'Sin categoría'}</p>
+    `;
+
+    const days = document.createElement('div');
+    days.className = 'habit-days';
+
+    const diasSemana = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+
+let diasTexto;
+if (habit.frequency === 'daily') {
+    diasTexto = 'Todos los días';
+} else if (habit.allowedDays && habit.allowedDays.length > 0) {
+    diasTexto = habit.allowedDays
+        .sort((a, b) => a - b)
+        .map(d => diasSemana[d])
+        .join(', ');
+} else {
+    diasTexto = 'No asignado';
+}
+
+
+    const diasLabel = document.createElement('p');
+    diasLabel.innerHTML = `<strong>Días asignados:</strong> ${diasTexto}`;
+    days.appendChild(diasLabel);
+
+    header.appendChild(info);
+    card.appendChild(header);
+    card.appendChild(days);
+
+    return card;
+}
+
         function createFinanceChart() {
             const ctx = document.getElementById('financeChart').getContext('2d');
             
@@ -2957,10 +3010,19 @@ function initializeTheme() {
                 const isAllowed = allowedDays.length === 0 || allowedDays.includes(dayOfWeek);
                 
                 let classes = 'calendar-day current-month';
-                if (isCompleted) classes += ' completed';
-                if (isToday) classes += ' today';
-                if (!isAllowed) classes += ' disabled';
-                else classes += ' available';
+if (isCompleted) classes += ' completed';
+if (isToday) classes += ' today';
+if (!isAllowed) {
+    classes += ' disabled';
+} else {
+    classes += ' available';
+
+    // Agrega esta sección para marcar como "asignado" si está en habit.assignedDays
+    if (habit.assignedDays && habit.assignedDays.includes(dateStr)) {
+        classes += ' assigned';
+    }
+}
+
                 
                 const clickHandler = isAllowed ? `onclick="toggleHabitDay('${habitId}', '${dateStr}')"` : '';
                 
@@ -2970,25 +3032,27 @@ function initializeTheme() {
             return calendar;
         }
 
-        function toggleHabitDay(habitId, dateStr) {
-            const habitIndex = data.habits.findIndex(h => h.id === habitId);
-            if (habitIndex === -1) return;
+    function toggleHabitDay(habitId, dateStr) {
+    const habitIndex = data.habits.findIndex(h => h.id === habitId);
+    if (habitIndex === -1) return;
 
-            if (!data.habits[habitIndex].completedDates) {
-                data.habits[habitIndex].completedDates = [];
-            }
+    const habit = data.habits[habitIndex];
 
-            const dateIndex = data.habits[habitIndex].completedDates.indexOf(dateStr);
-            if (dateIndex > -1) {
-                data.habits[habitIndex].completedDates.splice(dateIndex, 1);
-            } else {
-                data.habits[habitIndex].completedDates.push(dateStr);
-            }
+    if (!habit.assignedDays) habit.assignedDays = [];
 
-            saveData('habits');
-            loadHabits();
-            checkAchievements();
-        }
+    const idx = habit.assignedDays.indexOf(dateStr);
+    if (idx > -1) {
+        habit.assignedDays.splice(idx, 1); // quitar si ya estaba
+    } else {
+        habit.assignedDays.push(dateStr); // añadir si no estaba
+    }
+
+    saveData('habits');
+    loadHabits(); // vuelve a renderizar el calendario
+    checkAchievements();
+}
+
+
 
         function getHabitStats(habit) {
             if (!habit.completedDates) return { streak: 0, thisMonth: 0, total: 0 };
@@ -3031,56 +3095,63 @@ function initializeTheme() {
             return allowedDays.map(day => dayNames[day]);
         }
 
-        // Habits functions
         function loadHabits() {
-            const habitsList = document.getElementById('habitsList');
-            habitsList.innerHTML = '';
+    const habitsList = document.getElementById('habitsList');
+    habitsList.innerHTML = '';
 
-            const today = new Date();
-            const currentYear = today.getFullYear();
-            const currentMonth = today.getMonth();
+    const today = new Date();
+    const currentYear = today.getFullYear();
+    const currentMonth = today.getMonth();
+    const todayDayOfWeek = today.getDay(); // 0 = domingo
 
-            data.habits.forEach((habit, index) => {
-                const stats = getHabitStats(habit);
-                const calendar = generateCalendar(currentYear, currentMonth, habit.id);
-                
-                let daysDisplay = '';
-                if (habit.frequency === 'custom' && habit.allowedDays && habit.allowedDays.length > 0) {
-                    const dayNames = getDayNames(habit.allowedDays);
-                    daysDisplay = `<div class="habit-days">
-                        ${dayNames.map(day => `<span class="habit-day-tag">${day}</span>`).join('')}
-                    </div>`;
-                }
-                
-                const habitElement = document.createElement('div');
-                habitElement.className = 'habit-card';
-                habitElement.innerHTML = `
-                    <div class="habit-header">
-                        <div class="habit-info">
-                            <h3>${habit.name}</h3>
-                            <p>${habit.description}</p>
-                            <div>
-                                <span class="tag">${habit.category}</span>
-                                <span class="tag">${habit.frequency === 'custom' ? 'Personalizado' : habit.frequency}</span>
-                            </div>
-                            ${daysDisplay}
-                        </div>
-                        <div class="item-actions">
-                            <button class="btn btn-danger btn-small" onclick="deleteHabit(${index})">Eliminar</button>
-                        </div>
-                    </div>
-                    <div class="habit-stats">
-                        <span><strong>Racha:</strong> ${stats.streak}d</span>
-                        <span><strong>Este mes:</strong> ${stats.thisMonth}d</span>
-                        <span><strong>Total:</strong> ${stats.total}d</span>
-                    </div>
-                    <div class="habit-calendar">
-                        ${calendar}
-                    </div>
-                `;
-                habitsList.appendChild(habitElement);
-            });
+    const todaysHabits = data.habits.filter(habit => {
+        if (habit.frequency === 'daily') return true;
+        if (habit.frequency === 'weekly') return habit.allowedDays?.includes(todayDayOfWeek);
+        if (habit.frequency === 'custom') return habit.allowedDays?.includes(todayDayOfWeek);
+        return false;
+    });
+
+    todaysHabits.forEach((habit, index) => {
+        const stats = getHabitStats(habit);
+        const calendar = generateCalendar(currentYear, currentMonth, habit.id);
+
+        let daysDisplay = '';
+        if (habit.frequency === 'custom' && habit.allowedDays && habit.allowedDays.length > 0) {
+            const dayNames = getDayNames(habit.allowedDays);
+            daysDisplay = `<div class="habit-days">
+                ${dayNames.map(day => `<span class="habit-day-tag">${day}</span>`).join('')}
+            </div>`;
         }
+
+        const habitElement = document.createElement('div');
+        habitElement.className = 'habit-card';
+        habitElement.innerHTML = `
+            <div class="habit-header">
+                <div class="habit-info">
+                    <h3>${habit.name}</h3>
+                    <p>${habit.description}</p>
+                    <div>
+                        <span class="tag">${habit.category}</span>
+                        <span class="tag">${habit.frequency === 'custom' ? 'Personalizado' : habit.frequency}</span>
+                    </div>
+                    ${daysDisplay}
+                </div>
+                <div class="item-actions">
+                    <button class="btn btn-danger btn-small" onclick="deleteHabit(${index})">Eliminar</button>
+                </div>
+            </div>
+            <div class="habit-stats">
+                <span><strong>Racha:</strong> ${stats.streak}d</span>
+                <span><strong>Este mes:</strong> ${stats.thisMonth}d</span>
+                <span><strong>Total:</strong> ${stats.total}d</span>
+            </div>
+            <div class="habit-calendar">
+                ${calendar}
+            </div>
+        `;
+        habitsList.appendChild(habitElement);
+    });
+}
 
         function deleteHabit(index) {
             if (confirm('¿Estás seguro de que quieres eliminar este hábito?')) {
@@ -3403,16 +3474,18 @@ document.getElementById('habitForm').addEventListener('submit', function(e) {
         }
     }
     
-    const habit = {
-        id: Date.now().toString(),
-        name: document.getElementById('habitName').value,
-        description: document.getElementById('habitDescription').value,
-        frequency: frequency,
-        category: document.getElementById('habitCategory').value,
-        allowedDays: allowedDays,
-        completedDates: [],
-        createdAt: new Date().toISOString()
-    };
+ const habit = {
+    id: Date.now().toString(),
+    name: document.getElementById('habitName').value,
+    description: document.getElementById('habitDescription').value,
+    frequency: frequency,
+    category: document.getElementById('habitCategory').value,
+    allowedDays: allowedDays,
+    completedDates: [],
+    assignedDays: [], // NUEVO
+    createdAt: new Date().toISOString()
+};
+
     
     data.habits.push(habit);
     saveData('habits');
@@ -3551,6 +3624,36 @@ document.addEventListener('DOMContentLoaded', function() {
     updateAllCharts();
     checkAchievements();
 });
+
+function mostrarTodosLosHabitos() {
+    // Simplemente vuelve a renderizar todos los hábitos sin importar el día
+    renderHabits(true); // true = mostrar todos
+}
+function renderHabits(mostrarTodos = false) {
+    const container = document.getElementById('habitsList');
+    container.innerHTML = '';
+
+    const today = new Date().getDay(); // 0 = Domingo
+
+    const habitosFiltrados = mostrarTodos 
+        ? data.habits 
+        : data.habits.filter(h => 
+            h.frequency === 'daily' || 
+            (h.frequency === 'custom' && h.days && h.days.includes(today))
+        );
+
+    habitosFiltrados.forEach(habit => {
+        const card = createHabitCard(habit);
+        container.appendChild(card);
+    });
+}
+window.onload = () => {
+    renderHabits();
+};
+const diasAsignados = [];
+
+console.log("HÁBITOS REGISTRADOS:", data.habits);
+
     </script>
 </body>
 </html>
