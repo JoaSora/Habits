@@ -3047,24 +3047,24 @@ if (!isAllowed) {
         }
 
     function toggleHabitDay(habitId, dateStr) {
-    const habitIndex = data.habits.findIndex(h => h.id === habitId);
-    if (habitIndex === -1) return;
+  const habitIndex = data.habits.findIndex(h => h.id === habitId);
+  if (habitIndex === -1) return;
 
-    const habit = data.habits[habitIndex];
+  const habit = data.habits[habitIndex];
+  if (!habit.completedDates) habit.completedDates = [];
 
-    if (!habit.assignedDays) habit.assignedDays = [];
+  const idx = habit.completedDates.indexOf(dateStr);
+  if (idx > -1) {
+    habit.completedDates.splice(idx, 1); // quitar si ya estaba
+  } else {
+    habit.completedDates.push(dateStr); // añadir si no estaba
+  }
 
-    const idx = habit.assignedDays.indexOf(dateStr);
-    if (idx > -1) {
-        habit.assignedDays.splice(idx, 1); // quitar si ya estaba
-    } else {
-        habit.assignedDays.push(dateStr); // añadir si no estaba
-    }
-
-    saveData('habits');
-    loadHabits(); // vuelve a renderizar el calendario
-    checkAchievements();
+  saveData('habits');
+  loadHabits(); // vuelve a renderizar el calendario y las estadísticas
+  checkAchievements();
 }
+
 
 
 
@@ -3693,5 +3693,58 @@ function descargarDatos() {
 console.log("HÁBITOS REGISTRADOS:", data.habits);
 
     </script>
+
+<script>
+  document.querySelectorAll('.calendar-day.current-month').forEach(day => {
+    day.addEventListener('click', () => {
+      if (!day.classList.contains('disabled') && !day.classList.contains('header')) {
+        day.classList.toggle('completed');
+      }
+    });
+  });
+</script>
+
+
+<script>
+  // Clave de almacenamiento
+  const HABIT_STORAGE_KEY = 'habitCompletions';
+
+  // Cargar datos guardados
+  const savedCompletions = JSON.parse(localStorage.getItem(HABIT_STORAGE_KEY)) || {};
+
+  // Aplicar estado guardado al cargar la página
+  document.querySelectorAll('.calendar-day.current-month').forEach(day => {
+    const date = day.dataset.date;
+    const habitId = day.closest('.habit-card')?.dataset.id;
+    if (habitId && date && savedCompletions[habitId]?.includes(date)) {
+      day.classList.add('completed');
+    }
+
+    // Añadir evento de clic para marcar/demarcar
+    day.addEventListener('click', () => {
+      if (day.classList.contains('disabled') || day.classList.contains('header')) return;
+      day.classList.toggle('completed');
+
+      const date = day.dataset.date;
+      const habitId = day.closest('.habit-card')?.dataset.id;
+      if (!habitId || !date) return;
+
+      if (!savedCompletions[habitId]) {
+        savedCompletions[habitId] = [];
+      }
+
+      if (day.classList.contains('completed')) {
+        if (!savedCompletions[habitId].includes(date)) {
+          savedCompletions[habitId].push(date);
+        }
+      } else {
+        savedCompletions[habitId] = savedCompletions[habitId].filter(d => d !== date);
+      }
+
+      localStorage.setItem(HABIT_STORAGE_KEY, JSON.stringify(savedCompletions));
+    });
+  });
+</script>
+
 </body>
 </html>
