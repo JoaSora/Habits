@@ -1116,8 +1116,8 @@
             <h1>🎯 Mi Tracker Personal</h1>
             <p>Organiza tu vida, alcanza tus metas</p>
             <div class="header-actions">
-                <button class="btn btn-secondary" onclick="downloadMonthlyReport()">📥 Descargar Reporte</button>
-                <button class="btn btn-secondary" onclick="openModal('uploadModal')">📤 Cargar Datos</button>
+                <button class="btn btn-secondary" onclick="descargarRespaldo()">📥 Descargar Respaldo</button>
+                <button class="btn btn-secondary" onclick="openModal('uploadModal')">📤 Cargar Respaldo</button>
             </div>
         </div>
 
@@ -1140,8 +1140,7 @@
                 <h3>📄 Reporte Mensual</h3>
                 <p>Descarga un reporte detallado de tu progreso del mes actual</p>
                 <div class="download-buttons">
-                    <button class="btn btn-success" onclick="downloadMonthlyReport()">📥 Descargar Reporte</button>
-                    <button class="btn btn-secondary" onclick="openModal('uploadModal')">📤 Cargar Respaldo</button>
+                   <button class="btn btn-success" onclick="descargarDatos()">📥 Descargar Datos</button>
                 </div>
             </div>
 
@@ -3652,6 +3651,30 @@ window.onload = () => {
     renderHabits();
 };
 const diasAsignados = [];
+function descargarRespaldo() {
+  const exportData = {
+    habits: data.habits,
+    incomes: data.incomes,
+    expenses: data.expenses,
+    media: data.media,
+    books: data.books,
+    courses: data.courses,
+    journal: data.journal,
+    achievements: data.achievements,
+    settings: data.settings,
+    customCategories: data.customCategories
+  };
+
+  const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'respaldo_mi_tracker.json';
+  a.click();
+}
+
+function descargarDatos() {
+  descargarRespaldo(); // misma función
+}
 
 console.log("HÁBITOS REGISTRADOS:", data.habits);
 
