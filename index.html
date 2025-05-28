@@ -1023,7 +1023,7 @@
             flex-wrap: wrap;
         }
 
-        @media (max-width: 768px) {
+        @media (max-width: 600px) {
             .container {
                 padding: 10px;
             }
@@ -1088,12 +1088,17 @@
             .achievements-grid {
                 grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
             }
+            .habit-calendar .day-cell {
+            width: 40px !important;
+            height: 40px !important;
+            font-size: 12px !important;
+            margin: 2px !important;
         }
         .calendar-day.assigned {
-    background-color: var(--accent-color-light);
-    color: white;
-    border: 2px dashed var(--accent-color);
-}
+        background-color: var(--accent-color-light);
+        color: white;
+        border: 2px dashed var(--accent-color);
+}}
 
     </style>
 </head>
