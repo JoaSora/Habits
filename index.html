@@ -1193,21 +1193,16 @@
                     <div class="chart-card">
                         <h3>📖 Libros por Género</h3>
                         <div class="chart-container">
-                            <canvas id="bookGenreChart"></canvas>
+                            <canvas id="bookGenreChart" style="width:100%; height:250px;"></canvas>
                         </div>
                     </div>
                     <div class="chart-card">
-            <h3>🎬 Películas/Series del Mes</h3>
-            <div class="chart-container">
-                <canvas id="monthlyCompletedChart"></canvas>
-            </div>
-        </div>
+                    <h3>🎬 Géneros de Películas/Series</h3>
+                    <div class="chart-container">
+                    <canvas id="mediaGenreChart" style="width:100%; height:250px;"></canvas>
+                    </div>
+                    </div>
                 </div>
-            </div>
-
-            <div id="recentActivity">
-                <h3 style="color: var(--text-secondary);">📈 Actividad Reciente</h3>
-                <div id="recentItems"></div>
             </div>
         </div>
 
@@ -2511,6 +2506,51 @@ if (habit.frequency === 'daily') {
             });
         }
 
+        function renderMediaGenreChart() {
+            const genreCounts = {};
+            data.media.forEach(item => {
+            const genre = item.genre?.trim() || 'Sin género';
+            genreCounts[genre] = (genreCounts[genre] || 0) + 1;
+            });
+
+            const ctx = document.getElementById('mediaGenreChart').getContext('2d');
+            if (window.mediaGenreChart) window.mediaGenreChart.destroy();
+            window.mediaGenreChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+            labels: Object.keys(genreCounts),
+            datasets: [{
+                label: 'Cantidad',
+                data: Object.values(genreCounts),
+                backgroundColor: 'rgba(135, 206, 235, 0.6)',
+                borderColor: 'rgba(135, 206, 235, 1)',
+                borderWidth: 1
+            }]
+            },
+            options: {
+            responsive: true,
+            plugins: {
+                legend: { display: false },
+                title: { display: false }
+            },
+            scales: {
+                x: {
+                    ticks: {
+                        color: getComputedStyle(document.body).getPropertyValue('--text-secondary')
+                    }
+                },
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        color: getComputedStyle(document.body).getPropertyValue('--text-secondary')
+                    }
+                }
+            }
+            }
+            });
+        }
+
+
         function createMonthlyCompletedChart() {
     const ctx = document.getElementById('monthlyCompletedChart').getContext('2d');
     
@@ -3744,6 +3784,76 @@ console.log("HÁBITOS REGISTRADOS:", data.habits);
       localStorage.setItem(HABIT_STORAGE_KEY, JSON.stringify(savedCompletions));
     });
   });
+  renderMediaGenreChart();
+</script>
+
+
+
+
+<script>
+function generarGraficoGeneroMedia() {
+    const conteoPorGenero = {};
+    const colores = {};
+
+    // Colores únicos por género, extendido si hay muchos
+    const paleta = [
+        '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0',
+        '#9966FF', '#FF9F40', '#66BB6A', '#BA68C8',
+        '#F06292', '#9575CD', '#26C6DA', '#D4E157',
+        '#EC407A', '#5C6BC0', '#9CCC65', '#FFA726',
+        '#AB47BC', '#26A69A', '#EF5350', '#42A5F5'
+    ];
+
+    let colorIndex = 0;
+
+    // Recolectar y contar por género
+    data.media.forEach(item => {
+        const genero = item.genre ? item.genre.trim().toUpperCase() : 'SIN GÉNERO';
+        if (!conteoPorGenero[genero]) {
+            conteoPorGenero[genero] = 0;
+            colores[genero] = paleta[colorIndex % paleta.length];
+            colorIndex++;
+        }
+        conteoPorGenero[genero]++;
+    });
+
+    const labels = Object.keys(conteoPorGenero);
+    const cantidades = Object.values(conteoPorGenero);
+    const coloresFinales = labels.map(g => colores[g]);
+
+    const ctx = document.getElementById('mediaGenreChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Cantidad',
+                data: cantidades,
+                backgroundColor: coloresFinales,
+                borderColor: '#000',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+}
+
+// Aseguramos que se llame cuando se cargue la página
+window.onload = function () {
+    if (typeof generarGraficoGeneroMedia === 'function') generarGraficoGeneroMedia();
+};
 </script>
 
 </body>
