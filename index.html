@@ -1,12 +1,24 @@
 <!DOCTYPE html>
+
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mi Tracker Personal</title>
-    <link  rel="icon" href=icon.png type="image/png">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <style>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Mi Tracker Personal</title>
+<link href="icon.png" rel="icon" type="image/png"/>
+<script src="https://cdn.jsdelivr.net/npm/chart.js">
+function eliminarMedia(titulo) {
+    const index = data.media.findIndex(item => item.title === titulo);
+    if (index > -1 && confirm('¿Estás seguro de que quieres eliminar este elemento?')) {
+        data.media.splice(index, 1);
+        saveData('media');
+        renderMedia();
+        checkAchievements();
+    }
+}
+
+</script>
+<style>
         :root {
     /* Light theme variables */
     --bg-primary: linear-gradient(135deg, #1a1a1a 0%, #2c2c2c 50%, #1a1a1a 100%);
@@ -1112,648 +1124,633 @@
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <select class="theme-toggle" onchange="changeTheme(this.value)">
-    <option value="light">☀️ Claro</option>
-    <option value="dark">🌙 Oscuro</option>
-    <option value="ocean">🌊 Océano</option>
-    <option value="forest">🌲 Bosque</option>
-    <option value="sunset">🌅 Atardecer</option>
-    <option value="purple">💜 Púrpura</option>
-    <option value="cyberpunk">🤖 Cyberpunk</option>
-    <option value="vintage">📜 Vintage</option>
-    <option value="neon">⚡ Neón</option>
-    <option value="pastel">🌸 Pastel</option>
-    <option value="monochrome">⚫ Monocromo</option>
+<div class="container">
+<div class="header">
+<select class="theme-toggle" onchange="changeTheme(this.value)">
+<option value="light">☀️ Claro</option>
+<option value="dark">🌙 Oscuro</option>
+<option value="ocean">🌊 Océano</option>
+<option value="forest">🌲 Bosque</option>
+<option value="sunset">🌅 Atardecer</option>
+<option value="purple">💜 Púrpura</option>
+<option value="cyberpunk">🤖 Cyberpunk</option>
+<option value="vintage">📜 Vintage</option>
+<option value="neon">⚡ Neón</option>
+<option value="pastel">🌸 Pastel</option>
+<option value="monochrome">⚫ Monocromo</option>
 </select>
-            <h1>🎯 Mi Tracker Personal</h1>
-            <p>Organiza tu vida, alcanza tus metas</p>
-            <div class="header-actions">
-                <button class="btn btn-secondary" onclick="descargarRespaldo()">📥 Descargar Respaldo</button>
-                <button class="btn btn-secondary" onclick="openModal('uploadModal')">📤 Cargar Respaldo</button>
-            </div>
-        </div>
-
-        <div class="nav-tabs">
-            <button class="tab-btn active" onclick="showTab('dashboard')">📊 Dashboard</button>
-            <button class="tab-btn" onclick="showTab('habits')">✅ Hábitos</button>
-            <button class="tab-btn" onclick="showTab('finances')">💰 Finanzas</button>
-            <button class="tab-btn" onclick="showTab('media')">🎬 Películas/Series</button>
-            <button class="tab-btn" onclick="showTab('books')">📚 Libros</button>
-            <button class="tab-btn" onclick="showTab('courses')">🎓 Cursos</button>
-            <button class="tab-btn" onclick="showTab('journal')">📝 Journal</button>
-            <button class="tab-btn" onclick="showTab('achievements')">🏆 Logros</button>
-        </div>
-
-        <!-- Dashboard Tab -->
-        <div id="dashboard" class="tab-content active">
-            <h2 class="section-title">📊 Dashboard General</h2>
-            
-            <div class="download-section">
-                <h3>📄 Reporte Mensual</h3>
-                <p>Descarga un reporte detallado de tu progreso del mes actual</p>
-                <div class="download-buttons">
-                   <button class="btn btn-success" onclick="descargarDatos()">📥 Descargar Datos</button>
-                </div>
-            </div>
-
-            <div class="stats-grid" id="statsGrid">
-                <!-- Stats will be populated by JavaScript -->
-            </div>
-
-            <!-- Charts Section -->
-            <div class="charts-section">
-                <h3 style="color: var(--text-secondary); margin-bottom: 20px;">📈 Análisis Visual</h3>
-                <div class="charts-grid">
-                    <div class="chart-card">
-                        <h3>📊 Hábitos por Categoría</h3>
-                        <div class="chart-container">
-                            <canvas id="habitsChart"></canvas>
-                        </div>
-                    </div>
-                    <div class="chart-card">
-                        <h3>💰 Balance Financiero (6 meses)</h3>
-                        <div class="chart-container">
-                            <canvas id="financeChart"></canvas>
-                        </div>
-                    </div>
-                    <div class="chart-card">
-                        <h3>📈 Progreso de Hábitos (7 días)</h3>
-                        <div class="chart-container">
-                            <canvas id="progressChart"></canvas>
-                        </div>
-                    </div>
-                    <div class="chart-card">
-                        <h3>😊 Estado de Ánimo</h3>
-                        <div class="chart-container">
-                            <canvas id="moodChart"></canvas>
-                        </div>
-                    </div>
-                    <div class="chart-card">
-                        <h3>📖 Libros por Género</h3>
-                        <div class="chart-container">
-                            <canvas id="bookGenreChart" style="width:100%; height:250px;"></canvas>
-                        </div>
-                    </div>
-                    <div class="chart-card">
-                    <h3>🎬 Géneros de Películas/Series</h3>
-                    <div class="chart-container">
-                    <canvas id="mediaGenreChart" style="width:100%; height:250px;"></canvas>
-                    </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Achievements Tab -->
-        <div id="achievements" class="tab-content">
-            <div class="achievements-section">
-                <h2 class="section-title">🏆 Mis Logros</h2>
-                <p style="color: var(--text-secondary); margin-bottom: 20px;">
+<h1>🎯 Mi Tracker Personal</h1>
+<p>Organiza tu vida, alcanza tus metas</p>
+<div class="header-actions">
+<button class="btn btn-secondary" onclick="descargarRespaldo()">📥 Descargar Respaldo</button>
+<button class="btn btn-secondary" onclick="openModal('uploadModal')">📤 Cargar Respaldo</button>
+</div>
+</div>
+<div class="nav-tabs">
+<button class="tab-btn active" onclick="showTab('dashboard')">📊 Dashboard</button>
+<button class="tab-btn" onclick="showTab('habits')">✅ Hábitos</button>
+<button class="tab-btn" onclick="showTab('finances')">💰 Finanzas</button>
+<button class="tab-btn" onclick="showTab('media')">🎭 Entretenimiento</button>
+<button class="tab-btn" onclick="showTab('books')">📚 Libros</button>
+<button class="tab-btn" onclick="showTab('courses')">🎓 Cursos</button>
+<button class="tab-btn" onclick="showTab('journal')">📝 Journal</button>
+<button class="tab-btn" onclick="showTab('achievements')">🏆 Logros</button>
+</div>
+<!-- Dashboard Tab -->
+<div class="tab-content active" id="dashboard">
+<h2 class="section-title">📊 Dashboard General</h2>
+<div class="download-section">
+<h3>📄 Reporte Mensual</h3>
+<p>Descarga un reporte detallado de tu progreso del mes actual</p>
+<div class="download-buttons">
+<button class="btn btn-success" onclick="descargarDatos()">📥 Descargar Datos</button>
+</div>
+</div>
+<div class="stats-grid" id="statsGrid">
+<!-- Stats will be populated by JavaScript -->
+</div>
+<!-- Charts Section -->
+<div class="charts-section">
+<h3 style="color: var(--text-secondary); margin-bottom: 20px;">📈 Análisis Visual</h3>
+<div class="charts-grid">
+<div class="chart-card">
+<h3>📊 Hábitos por Categoría</h3>
+<div class="chart-container">
+<canvas id="habitsChart"></canvas>
+</div>
+</div>
+<div class="chart-card">
+<h3>💰 Balance Financiero (6 meses)</h3>
+<div class="chart-container">
+<canvas id="financeChart"></canvas>
+</div>
+</div>
+<div class="chart-card">
+<h3>📈 Progreso de Hábitos (7 días)</h3>
+<div class="chart-container">
+<canvas id="progressChart"></canvas>
+</div>
+</div>
+<div class="chart-card">
+<h3>😊 Estado de Ánimo</h3>
+<div class="chart-container">
+<canvas id="moodChart"></canvas>
+</div>
+</div>
+<div class="chart-card">
+<h3>📖 Libros por Género</h3>
+<div class="chart-container">
+<canvas id="bookGenreChart" style="width:100%; height:250px;"></canvas>
+</div>
+</div>
+<div class="chart-card">
+<h3>🎭 Géneros de Entretenimiento</h3>
+<div class="chart-container">
+<canvas id="mediaGenreChart" style="width:100%; height:250px;"></canvas>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Achievements Tab -->
+<div class="tab-content" id="achievements">
+<div class="achievements-section">
+<h2 class="section-title">🏆 Mis Logros</h2>
+<p style="color: var(--text-secondary); margin-bottom: 20px;">
                     Desbloquea logros completando diferentes actividades en tu tracker personal.
                 </p>
-                <div class="achievements-grid" id="achievementsList">
-                    <!-- Achievements will be populated by JavaScript -->
-                </div>
-            </div>
-        </div>
-
-        <!-- Habits Tab -->
-        <div id="habits" class="tab-content">
-           <div class="section-header">
-    <h2 class="section-title">✅ Mis Hábitos</h2>
-    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-        <button class="btn" onclick="openModal('habitModal')">+ Nuevo Hábito</button>
-        <button class="btn btn-secondary" onclick="mostrarTodosLosHabitos()">👁️ Ver Todos</button>
-    </div>
+<div class="achievements-grid" id="achievementsList">
+<!-- Achievements will be populated by JavaScript -->
+</div>
+</div>
+</div>
+<!-- Habits Tab -->
+<div class="tab-content" id="habits">
+<div class="section-header">
+<h2 class="section-title">✅ Mis Hábitos</h2>
+<div style="display: flex; gap: 10px; flex-wrap: wrap;">
+<button class="btn" onclick="openModal('habitModal')">+ Nuevo Hábito</button>
+<button class="btn btn-secondary" onclick="mostrarTodosLosHabitos()">👁️ Ver Todos</button>
+</div>
+</div>
+<div class="habits-grid" id="habitsList">
+<!-- Habits will be populated by JavaScript -->
+</div>
+</div>
+<!-- Finances Tab -->
+<div class="tab-content" id="finances">
+<div class="section-header">
+<h2 class="section-title">💰 Mis Finanzas</h2>
+<div>
+<button class="btn btn-success" onclick="openModal('incomeModal')">+ Nuevo Ingreso</button>
+<button class="btn" onclick="openModal('expenseModal')">+ Nuevo Gasto</button>
+</div>
+</div>
+<div class="balance-card" id="balanceCard">
+<div class="balance-amount" id="balanceAmount">$0.00</div>
+<div>Balance Total</div>
+</div>
+<div class="finance-tabs">
+<div class="finance-tab active" onclick="showFinanceTab('summary')">📊 Resumen</div>
+<div class="finance-tab" onclick="showFinanceTab('incomes')">💚 Ingresos</div>
+<div class="finance-tab" onclick="showFinanceTab('expenses')">💸 Gastos</div>
+</div>
+<div class="finance-content active" id="financeSummary">
+<div id="monthlyFinanceSummary"></div>
+</div>
+<div class="finance-content" id="financeIncomes">
+<div class="items-grid" id="incomesList"></div>
+</div>
+<div class="finance-content" id="financeExpenses">
+<div class="items-grid" id="expensesList"></div>
+</div>
+</div>
+<!-- Media Tab -->
+<div class="tab-content" id="media">
+<div class="section-header">
+<h2 class="section-title">🎭 Entretenimiento</h2>
+<button class="btn" onclick="openModal('mediaModal')">+ Agregar Película/Serie</button>
 </div>
 
-            <div class="habits-grid" id="habitsList">
-                <!-- Habits will be populated by JavaScript -->
-            </div>
-        </div>
 
-        <!-- Finances Tab -->
-        <div id="finances" class="tab-content">
-            <div class="section-header">
-                <h2 class="section-title">💰 Mis Finanzas</h2>
-                <div>
-                    <button class="btn btn-success" onclick="openModal('incomeModal')">+ Nuevo Ingreso</button>
-                    <button class="btn" onclick="openModal('expenseModal')">+ Nuevo Gasto</button>
-                </div>
-            </div>
-            
-            <div class="balance-card" id="balanceCard">
-                <div class="balance-amount" id="balanceAmount">$0.00</div>
-                <div>Balance Total</div>
-            </div>
-
-            <div class="finance-tabs">
-                <div class="finance-tab active" onclick="showFinanceTab('summary')">📊 Resumen</div>
-                <div class="finance-tab" onclick="showFinanceTab('incomes')">💚 Ingresos</div>
-                <div class="finance-tab" onclick="showFinanceTab('expenses')">💸 Gastos</div>
-            </div>
-
-            <div id="financeSummary" class="finance-content active">
-                <div id="monthlyFinanceSummary"></div>
-            </div>
-
-            <div id="financeIncomes" class="finance-content">
-                <div class="items-grid" id="incomesList"></div>
-            </div>
-
-            <div id="financeExpenses" class="finance-content">
-                <div class="items-grid" id="expensesList"></div>
-            </div>
-        </div>
-
-        <!-- Media Tab -->
-        <div id="media" class="tab-content">
-            <div class="section-header">
-                <h2 class="section-title">🎬 Películas y Series</h2>
-                <button class="btn" onclick="openModal('mediaModal')">+ Agregar Película/Serie</button>
-            </div>
-            <div class="items-grid" id="mediaList">
-                <!-- Media will be populated by JavaScript -->
-            </div>
-        </div>
-
-        <!-- Books Tab -->
-        <div id="books" class="tab-content">
-            <div class="section-header">
-                <h2 class="section-title">📚 Mis Libros</h2>
-                <button class="btn" onclick="openModal('bookModal')">+ Nuevo Libro</button>
-            </div>
-            <div class="items-grid" id="booksList">
-                <!-- Books will be populated by JavaScript -->
-            </div>
-        </div>
-
-        <!-- Courses Tab -->
-        <div id="courses" class="tab-content">
-            <div class="section-header">
-                <h2 class="section-title">🎓 Mis Cursos</h2>
-                <button class="btn" onclick="openModal('courseModal')">+ Nuevo Curso</button>
-            </div>
-            <div class="items-grid" id="coursesList">
-                <!-- Courses will be populated by JavaScript -->
-            </div>
-        </div>
-
-        <!-- Journal Tab -->
-        <div id="journal" class="tab-content">
-            <div class="section-header">
-                <h2 class="section-title">📝 Mi Journal</h2>
-                <button class="btn" onclick="openModal('journalModal')">+ Nueva Entrada</button>
-            </div>
-            <div class="items-grid" id="journalList">
-                <!-- Journal entries will be populated by JavaScript -->
-            </div>
-        </div>
-    </div>
-
-    <!-- Achievement Notification -->
-    <div id="achievementNotification" class="achievement-notification">
-        <h4 id="achievementTitle">🏆 ¡Logro Desbloqueado!</h4>
-        <p id="achievementText"></p>
-    </div>
-
-    <!-- Upload Modal -->
-    <div id="uploadModal" class="modal">
-        <div class="modal-content">
-            <span class="close" onclick="closeModal('uploadModal')">&times;</span>
-            <h2>📤 Cargar Respaldo de Datos</h2>
-            <div class="form-group">
-                <label for="fileInput">Selecciona tu archivo de respaldo (.json):</label>
-                <input type="file" id="fileInput" accept=".json" onchange="loadDataFromFile(event)">
-            </div>
-            <p style="color: var(--text-muted); font-size: 14px; margin-top: 10px;">
+<div id="mediaVisual" style="display: flex; justify-content: space-between; gap: 30px; width: 100%; margin-top: 20px;">
+<div style="flex: 1; display: flex; flex-direction: column; gap: 15px;">
+<h2 style="text-align: center; color: var(--accent-color); margin-bottom: 10px;">🎬 Películas</h2>
+<div id="peliculasList"></div>
+</div>
+<div style="flex: 1; display: flex; flex-direction: column; gap: 15px;">
+<h2 style="text-align: center; color: var(--accent-color); margin-bottom: 10px;">📺 Series</h2>
+<div id="seriesList"></div>
+</div>
+<div style="flex: 1; display: flex; flex-direction: column; gap: 15px;">
+<h2 style="text-align: center; color: var(--accent-color); margin-bottom: 10px;">🎌 Anime</h2>
+<div id="animeList"></div>
+</div>
+</div>
+</div>
+<!-- Books Tab -->
+<div class="tab-content" id="books">
+<div class="section-header">
+<h2 class="section-title">📚 Mis Libros</h2>
+<button class="btn" onclick="openModal('bookModal')">+ Nuevo Libro</button>
+</div>
+<div class="items-grid" id="booksList">
+<!-- Books will be populated by JavaScript -->
+</div>
+</div>
+<!-- Courses Tab -->
+<div class="tab-content" id="courses">
+<div class="section-header">
+<h2 class="section-title">🎓 Mis Cursos</h2>
+<button class="btn" onclick="openModal('courseModal')">+ Nuevo Curso</button>
+</div>
+<div class="items-grid" id="coursesList">
+<!-- Courses will be populated by JavaScript -->
+</div>
+</div>
+<!-- Journal Tab -->
+<div class="tab-content" id="journal">
+<div class="section-header">
+<h2 class="section-title">📝 Mi Journal</h2>
+<button class="btn" onclick="openModal('journalModal')">+ Nueva Entrada</button>
+</div>
+<div class="items-grid" id="journalList">
+<!-- Journal entries will be populated by JavaScript -->
+</div>
+</div>
+</div>
+<!-- Achievement Notification -->
+<div class="achievement-notification" id="achievementNotification">
+<h4 id="achievementTitle">🏆 ¡Logro Desbloqueado!</h4>
+<p id="achievementText"></p>
+</div>
+<!-- Upload Modal -->
+<div class="modal" id="uploadModal">
+<div class="modal-content">
+<span class="close" onclick="closeModal('uploadModal')">×</span>
+<h2>📤 Cargar Respaldo de Datos</h2>
+<div class="form-group">
+<label for="fileInput">Selecciona tu archivo de respaldo (.json):</label>
+<input accept=".json" id="fileInput" onchange="loadDataFromFile(event)" type="file"/>
+</div>
+<p style="color: var(--text-muted); font-size: 14px; margin-top: 10px;">
                 ⚠️ Esto reemplazará todos tus datos actuales con los del archivo de respaldo.
             </p>
-        </div>
-    </div>
-
-    <!-- Category Management Modal -->
-    <div id="categoryModal" class="modal">
-        <div class="modal-content">
-            <span class="close" onclick="closeModal('categoryModal')">&times;</span>
-            <h2 id="categoryModalTitle">Gestionar Categorías</h2>
-            <div class="form-group">
-                <label for="newCategoryName">Nueva Categoría:</label>
-                <input type="text" id="newCategoryName" placeholder="Nombre de la categoría">
-                <button class="btn btn-success" onclick="addNewCategory()" style="margin-top: 10px;">Agregar</button>
-            </div>
-            <div class="form-group">
-                <label>Categorías Existentes:</label>
-                <div id="existingCategories" class="category-list">
-                    <!-- Categories will be populated by JavaScript -->
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Habit Modal -->
-    <div id="habitModal" class="modal">
-        <div class="modal-content">
-            <span class="close" onclick="closeModal('habitModal')">&times;</span>
-            <h2>✅ Nuevo Hábito</h2>
-            <form id="habitForm">
-                <div class="form-group">
-                    <label for="habitName">Nombre del Hábito:</label>
-                    <input type="text" id="habitName" required>
-                </div>
-                <div class="form-group">
-                    <label for="habitDescription">Descripción:</label>
-                    <textarea id="habitDescription"></textarea>
-                </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="habitFrequency">Frecuencia:</label>
-                        <select id="habitFrequency">
-                            <option value="daily">Diario</option>
-                            <option value="weekly">Semanal</option>
-                            <option value="custom">Días específicos</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="habitCategory">Categoría:</label>
-                        <div class="category-group">
-                            <select id="habitCategory" class="category-select">
-                                <option value="limpieza">Limpieza</option>
-                                <option value="fisico">Físico</option>
-                                <option value="conocimiento">Conocimiento</option>
-                                <option value="habito">Hábito</option>
-                                <option value="otro">Otro</option>
-                            </select>
-                            <button type="button" class="btn btn-secondary btn-small" onclick="openCategoryManager('habit')">Gestionar</button>
-                        </div>
-                    </div>
-                </div>
-                <div class="form-group" id="daysSelector" style="display: none;">
-                    <label>Días de la semana:</label>
-                    <div class="days-selector">
-                        <div class="day-checkbox" onclick="toggleDay(this, 0)">
-                            <input type="checkbox" value="0">
-                            <span class="day-name">Dom</span>
-                            <span class="day-initial">D</span>
-                        </div>
-                        <div class="day-checkbox" onclick="toggleDay(this, 1)">
-                            <input type="checkbox" value="1">
-                            <span class="day-name">Lun</span>
-                            <span class="day-initial">L</span>
-                        </div>
-                        <div class="day-checkbox" onclick="toggleDay(this, 2)">
-                            <input type="checkbox" value="2">
-                            <span class="day-name">Mar</span>
-                            <span class="day-initial">M</span>
-                        </div>
-                        <div class="day-checkbox" onclick="toggleDay(this, 3)">
-                            <input type="checkbox" value="3">
-                            <span class="day-name">Mié</span>
-                            <span class="day-initial">M</span>
-                        </div>
-                        <div class="day-checkbox" onclick="toggleDay(this, 4)">
-                            <input type="checkbox" value="4">
-                            <span class="day-name">Jue</span>
-                            <span class="day-initial">J</span>
-                        </div>
-                        <div class="day-checkbox" onclick="toggleDay(this, 5)">
-                            <input type="checkbox" value="5">
-                            <span class="day-name">Vie</span>
-                            <span class="day-initial">V</span>
-                        </div>
-                        <div class="day-checkbox" onclick="toggleDay(this, 6)">
-                            <input type="checkbox" value="6">
-                            <span class="day-name">Sáb</span>
-                            <span class="day-initial">S</span>
-                        </div>
-                    </div>
-                </div>
-                <button type="submit" class="btn">Guardar Hábito</button>
-            </form>
-        </div>
-    </div>
-
-    <!-- Income Modal -->
-    <div id="incomeModal" class="modal">
-        <div class="modal-content">
-            <span class="close" onclick="closeModal('incomeModal')">&times;</span>
-            <h2>💚 Nuevo Ingreso</h2>
-            <form id="incomeForm">
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="incomeAmount">Monto:</label>
-                        <input type="number" id="incomeAmount" step="0.01" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="incomeDate">Fecha:</label>
-                        <input type="date" id="incomeDate" required>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label for="incomeDescription">Descripción:</label>
-                    <input type="text" id="incomeDescription" required>
-                </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="incomeCategory">Categoría:</label>
-                        <div class="category-group">
-                            <select id="incomeCategory" class="category-select">
-                                <option value="salario">Salario</option>
-                                <option value="freelance">Freelance</option>
-                                <option value="inversion">Inversión</option>
-                                <option value="regalo">Regalo</option>
-                                <option value="venta">Venta</option>
-                                <option value="otros">Otros</option>
-                            </select>
-                            <button type="button" class="btn btn-secondary btn-small" onclick="openCategoryManager('income')">Gestionar</button>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label for="incomeRecurring">¿Es recurrente?</label>
-                        <select id="incomeRecurring">
-                            <option value="no">No</option>
-                            <option value="mensual">Mensual</option>
-                            <option value="quincenal">Quincenal</option>
-                            <option value="semanal">Semanal</option>
-                        </select>
-                    </div>
-                </div>
-                <button type="submit" class="btn btn-success">Guardar Ingreso</button>
-            </form>
-        </div>
-    </div>
-
-    <!-- Expense Modal -->
-    <div id="expenseModal" class="modal">
-        <div class="modal-content">
-            <span class="close" onclick="closeModal('expenseModal')">&times;</span>
-            <h2>💸 Nuevo Gasto</h2>
-            <form id="expenseForm">
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="expenseAmount">Monto:</label>
-                        <input type="number" id="expenseAmount" step="0.01" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="expenseDate">Fecha:</label>
-                        <input type="date" id="expenseDate" required>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label for="expenseDescription">Descripción:</label>
-                    <input type="text" id="expenseDescription" required>
-                </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="expenseCategory">Categoría:</label>
-                        <div class="category-group">
-                            <select id="expenseCategory" class="category-select">
-                                <option value="comida">Comida</option>
-                                <option value="transporte">Transporte</option>
-                                <option value="entretenimiento">Entretenimiento</option>
-                                <option value="salud">Salud</option>
-                                <option value="educacion">Educación</option>
-                                <option value="servicios">Servicios</option>
-                                <option value="ropa">Ropa</option>
-                                <option value="otros">Otros</option>
-                            </select>
-                            <button type="button" class="btn btn-secondary btn-small" onclick="openCategoryManager('expense')">Gestionar</button>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label for="expensePayment">Método de Pago:</label>
-                        <select id="expensePayment">
-                            <option value="efectivo">Efectivo</option>
-                            <option value="tarjeta">Tarjeta</option>
-                            <option value="transferencia">Transferencia</option>
-                        </select>
-                    </div>
-                </div>
-                <button type="submit" class="btn">Guardar Gasto</button>
-            </form>
-        </div>
-    </div>
-
-    <!-- Media Modal -->
-    <div id="mediaModal" class="modal">
-        <div class="modal-content">
-            <span class="close" onclick="closeModal('mediaModal')">&times;</span>
-            <h2>🎬 Nueva Película/Serie</h2>
-            <form id="mediaForm">
-                <div class="form-group">
-                    <label for="mediaTitle">Título:</label>
-                    <input type="text" id="mediaTitle" required>
-                </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="mediaType">Tipo:</label>
-                        <select id="mediaType">
-                            <option value="pelicula">Película</option>
-                            <option value="serie">Serie</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="mediaYear">Año:</label>
-                        <input type="number" id="mediaYear" min="1900" max="2030">
-                    </div>
-                </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="mediaGenre">Género:</label>
-                        <input type="text" id="mediaGenre">
-                    </div>
-                    <div class="form-group">
-                        <label for="mediaPlatform">Plataforma:</label>
-                        <input type="text" id="mediaPlatform">
-                    </div>
-                </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="mediaStatus">Estado:</label>
-                        <select id="mediaStatus">
-                            <option value="viendo">Viendo</option>
-                            <option value="completada">Completada</option>
-                            <option value="pausada">Pausada</option>
-                            <option value="abandonada">Abandonada</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="mediaRating">Calificación (1-10):</label>
-                        <input type="number" id="mediaRating" min="1" max="10">
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label for="mediaReview">Reseña:</label>
-                    <textarea id="mediaReview"></textarea>
-                </div>
-                <button type="submit" class="btn">Guardar</button>
-            </form>
-        </div>
-    </div>
-
-    <!-- Book Modal -->
-    <div id="bookModal" class="modal">
-        <div class="modal-content">
-            <span class="close" onclick="closeModal('bookModal')">&times;</span>
-            <h2>📚 Nuevo Libro</h2>
-            <form id="bookForm">
-                <div class="form-group">
-                    <label for="bookTitle">Título:</label>
-                    <input type="text" id="bookTitle" required>
-                </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="bookAuthor">Autor:</label>
-                        <input type="text" id="bookAuthor" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="bookPages">Páginas:</label>
-                        <input type="number" id="bookPages" min="1">
-                    </div>
-                </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="bookGenre">Género:</label>
-                        <input type="text" id="bookGenre">
-                    </div>
-                    <div class="form-group">
-                        <label for="bookFormat">Formato:</label>
-                        <select id="bookFormat">
-                            <option value="fisico">Físico</option>
-                            <option value="digital">Digital</option>
-                            <option value="audiolibro">Audiolibro</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="bookStatus">Estado:</label>
-                        <select id="bookStatus">
-                            <option value="leyendo">Leyendo</option>
-                            <option value="terminado">Terminado</option>
-                            <option value="pausado">Pausado</option>
-                            <option value="abandonado">Abandonado</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="bookRating">Calificación (1-10):</label>
-                        <input type="number" id="bookRating" min="1" max="10">
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label for="bookNotes">Notas:</label>
-                    <textarea id="bookNotes"></textarea>
-                </div>
-                <button type="submit" class="btn">Guardar Libro</button>
-            </form>
-        </div>
-    </div>
-
-    <!-- Course Modal -->
-    <div id="courseModal" class="modal">
-        <div class="modal-content">
-            <span class="close" onclick="closeModal('courseModal')">&times;</span>
-            <h2>🎓 Nuevo Curso</h2>
-            <form id="courseForm">
-                <div class="form-group">
-                    <label for="courseName">Nombre del Curso:</label>
-                    <input type="text" id="courseName" required>
-                </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="courseInstructor">Instructor:</label>
-                        <input type="text" id="courseInstructor">
-                    </div>
-                    <div class="form-group">
-                        <label for="coursePlatform">Plataforma:</label>
-                        <input type="text" id="coursePlatform">
-                    </div>
-                </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="courseDuration">Duración (horas):</label>
-                        <input type="number" id="courseDuration" min="1">
-                    </div>
-                    <div class="form-group">
-                        <label for="courseProgress">Progreso (%):</label>
-                        <input type="number" id="courseProgress" min="0" max="100" value="0">
-                    </div>
-                </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="courseStatus">Estado:</label>
-                        <select id="courseStatus">
-                            <option value="activo">Activo</option>
-                            <option value="completado">Completado</option>
-                            <option value="pausado">Pausado</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="courseRating">Calificación (1-10):</label>
-                        <input type="number" id="courseRating" min="1" max="10">
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label for="courseSkills">Habilidades Aprendidas:</label>
-                    <textarea id="courseSkills"></textarea>
-                </div>
-                <button type="submit" class="btn">Guardar Curso</button>
-            </form>
-        </div>
-    </div>
-
-    <!-- Journal Modal -->
-    <div id="journalModal" class="modal">
-        <div class="modal-content">
-            <span class="close" onclick="closeModal('journalModal')">&times;</span>
-            <h2>📝 Nueva Entrada de Journal</h2>
-            <form id="journalForm">
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="journalDate">Fecha:</label>
-                        <input type="date" id="journalDate" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="journalMood">Estado de Ánimo:</label>
-                        <select id="journalMood">
-                            <option value="😄">😄 Excelente</option>
-                            <option value="😊">😊 Bien</option>
-                            <option value="😐">😐 Normal</option>
-                            <option value="😔">😔 Triste</option>
-                            <option value="😠">😠 Enojado</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label for="journalTitle">Título del Día:</label>
-                    <input type="text" id="journalTitle">
-                </div>
-                <div class="form-group">
-                    <label for="journalContent">Reflexiones del Día:</label>
-                    <textarea id="journalContent" required></textarea>
-                </div>
-                <div class="form-group">
-                    <label for="journalGratitude">3 Cosas por las que estoy agradecido:</label>
-                    <textarea id="journalGratitude"></textarea>
-                </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="journalEnergy">Nivel de Energía (1-10):</label>
-                        <input type="number" id="journalEnergy" min="1" max="10" value="5">
-                    </div>
-                    <div class="form-group">
-                        <label for="journalSleep">Calidad del Sueño (1-10):</label>
-                        <input type="number" id="journalSleep" min="1" max="10" value="5">
-                    </div>
-                </div>
-                <button type="submit" class="btn">Guardar Entrada</button>
-            </form>
-        </div>
-    </div>
-
-    <script>
+</div>
+</div>
+<!-- Category Management Modal -->
+<div class="modal" id="categoryModal">
+<div class="modal-content">
+<span class="close" onclick="closeModal('categoryModal')">×</span>
+<h2 id="categoryModalTitle">Gestionar Categorías</h2>
+<div class="form-group">
+<label for="newCategoryName">Nueva Categoría:</label>
+<input id="newCategoryName" placeholder="Nombre de la categoría" type="text"/>
+<button class="btn btn-success" onclick="addNewCategory()" style="margin-top: 10px;">Agregar</button>
+</div>
+<div class="form-group">
+<label>Categorías Existentes:</label>
+<div class="category-list" id="existingCategories">
+<!-- Categories will be populated by JavaScript -->
+</div>
+</div>
+</div>
+</div>
+<!-- Habit Modal -->
+<div class="modal" id="habitModal">
+<div class="modal-content">
+<span class="close" onclick="closeModal('habitModal')">×</span>
+<h2>✅ Nuevo Hábito</h2>
+<form id="habitForm">
+<div class="form-group">
+<label for="habitName">Nombre del Hábito:</label>
+<input id="habitName" required="" type="text"/>
+</div>
+<div class="form-group">
+<label for="habitDescription">Descripción:</label>
+<textarea id="habitDescription"></textarea>
+</div>
+<div class="form-row">
+<div class="form-group">
+<label for="habitFrequency">Frecuencia:</label>
+<select id="habitFrequency">
+<option value="daily">Diario</option>
+<option value="weekly">Semanal</option>
+<option value="custom">Días específicos</option>
+</select>
+</div>
+<div class="form-group">
+<label for="habitCategory">Categoría:</label>
+<div class="category-group">
+<select class="category-select" id="habitCategory">
+<option value="limpieza">Limpieza</option>
+<option value="fisico">Físico</option>
+<option value="conocimiento">Conocimiento</option>
+<option value="habito">Hábito</option>
+<option value="otro">Otro</option>
+</select>
+<button class="btn btn-secondary btn-small" onclick="openCategoryManager('habit')" type="button">Gestionar</button>
+</div>
+</div>
+</div>
+<div class="form-group" id="daysSelector" style="display: none;">
+<label>Días de la semana:</label>
+<div class="days-selector">
+<div class="day-checkbox" onclick="toggleDay(this, 0)">
+<input type="checkbox" value="0"/>
+<span class="day-name">Dom</span>
+<span class="day-initial">D</span>
+</div>
+<div class="day-checkbox" onclick="toggleDay(this, 1)">
+<input type="checkbox" value="1"/>
+<span class="day-name">Lun</span>
+<span class="day-initial">L</span>
+</div>
+<div class="day-checkbox" onclick="toggleDay(this, 2)">
+<input type="checkbox" value="2"/>
+<span class="day-name">Mar</span>
+<span class="day-initial">M</span>
+</div>
+<div class="day-checkbox" onclick="toggleDay(this, 3)">
+<input type="checkbox" value="3"/>
+<span class="day-name">Mié</span>
+<span class="day-initial">M</span>
+</div>
+<div class="day-checkbox" onclick="toggleDay(this, 4)">
+<input type="checkbox" value="4"/>
+<span class="day-name">Jue</span>
+<span class="day-initial">J</span>
+</div>
+<div class="day-checkbox" onclick="toggleDay(this, 5)">
+<input type="checkbox" value="5"/>
+<span class="day-name">Vie</span>
+<span class="day-initial">V</span>
+</div>
+<div class="day-checkbox" onclick="toggleDay(this, 6)">
+<input type="checkbox" value="6"/>
+<span class="day-name">Sáb</span>
+<span class="day-initial">S</span>
+</div>
+</div>
+</div>
+<button class="btn" type="submit">Guardar Hábito</button>
+</form>
+</div>
+</div>
+<!-- Income Modal -->
+<div class="modal" id="incomeModal">
+<div class="modal-content">
+<span class="close" onclick="closeModal('incomeModal')">×</span>
+<h2>💚 Nuevo Ingreso</h2>
+<form id="incomeForm">
+<div class="form-row">
+<div class="form-group">
+<label for="incomeAmount">Monto:</label>
+<input id="incomeAmount" required="" step="0.01" type="number"/>
+</div>
+<div class="form-group">
+<label for="incomeDate">Fecha:</label>
+<input id="incomeDate" required="" type="date"/>
+</div>
+</div>
+<div class="form-group">
+<label for="incomeDescription">Descripción:</label>
+<input id="incomeDescription" required="" type="text"/>
+</div>
+<div class="form-row">
+<div class="form-group">
+<label for="incomeCategory">Categoría:</label>
+<div class="category-group">
+<select class="category-select" id="incomeCategory">
+<option value="salario">Salario</option>
+<option value="freelance">Freelance</option>
+<option value="inversion">Inversión</option>
+<option value="regalo">Regalo</option>
+<option value="venta">Venta</option>
+<option value="otros">Otros</option>
+</select>
+<button class="btn btn-secondary btn-small" onclick="openCategoryManager('income')" type="button">Gestionar</button>
+</div>
+</div>
+<div class="form-group">
+<label for="incomeRecurring">¿Es recurrente?</label>
+<select id="incomeRecurring">
+<option value="no">No</option>
+<option value="mensual">Mensual</option>
+<option value="quincenal">Quincenal</option>
+<option value="semanal">Semanal</option>
+</select>
+</div>
+</div>
+<button class="btn btn-success" type="submit">Guardar Ingreso</button>
+</form>
+</div>
+</div>
+<!-- Expense Modal -->
+<div class="modal" id="expenseModal">
+<div class="modal-content">
+<span class="close" onclick="closeModal('expenseModal')">×</span>
+<h2>💸 Nuevo Gasto</h2>
+<form id="expenseForm">
+<div class="form-row">
+<div class="form-group">
+<label for="expenseAmount">Monto:</label>
+<input id="expenseAmount" required="" step="0.01" type="number"/>
+</div>
+<div class="form-group">
+<label for="expenseDate">Fecha:</label>
+<input id="expenseDate" required="" type="date"/>
+</div>
+</div>
+<div class="form-group">
+<label for="expenseDescription">Descripción:</label>
+<input id="expenseDescription" required="" type="text"/>
+</div>
+<div class="form-row">
+<div class="form-group">
+<label for="expenseCategory">Categoría:</label>
+<div class="category-group">
+<select class="category-select" id="expenseCategory">
+<option value="comida">Comida</option>
+<option value="transporte">Transporte</option>
+<option value="entretenimiento">Entretenimiento</option>
+<option value="salud">Salud</option>
+<option value="educacion">Educación</option>
+<option value="servicios">Servicios</option>
+<option value="ropa">Ropa</option>
+<option value="otros">Otros</option>
+</select>
+<button class="btn btn-secondary btn-small" onclick="openCategoryManager('expense')" type="button">Gestionar</button>
+</div>
+</div>
+<div class="form-group">
+<label for="expensePayment">Método de Pago:</label>
+<select id="expensePayment">
+<option value="efectivo">Efectivo</option>
+<option value="tarjeta">Tarjeta</option>
+<option value="transferencia">Transferencia</option>
+</select>
+</div>
+</div>
+<button class="btn" type="submit">Guardar Gasto</button>
+</form>
+</div>
+</div>
+<!-- Media Modal -->
+<div class="modal" id="mediaModal">
+<div class="modal-content">
+<span class="close" onclick="closeModal('mediaModal')">×</span>
+<h2>🎬 Nueva Película/Serie</h2>
+<form id="mediaForm">
+<div class="form-group">
+<label for="mediaTitle">Título:</label>
+<input id="mediaTitle" required="" type="text"/>
+</div>
+<div class="form-row">
+<div class="form-group">
+<label for="mediaType">Tipo:</label>
+<select id="mediaType">
+<option value="pelicula">Película</option>
+<option value="serie">Serie</option>
+<option value="anime">Anime</option>
+</select>
+</div>
+<div class="form-group">
+<label for="mediaYear">Año:</label>
+<input id="mediaYear" max="2030" min="1900" type="number"/>
+</div>
+</div>
+<div class="form-row">
+<div class="form-group">
+<label for="mediaGenre">Género:</label>
+<input id="mediaGenre" type="text"/>
+</div>
+<div class="form-group">
+<label for="mediaPlatform">Plataforma:</label>
+<input id="mediaPlatform" type="text"/>
+</div>
+</div>
+<div class="form-row">
+<div class="form-group">
+<label for="mediaStatus">Estado:</label>
+<select id="mediaStatus">
+<option value="viendo">Viendo</option>
+<option value="completada">Completada</option>
+<option value="pausada">Pausada</option>
+<option value="abandonada">Abandonada</option>
+</select>
+</div>
+<div class="form-group">
+<label for="mediaRating">Calificación (1-10):</label>
+<input id="mediaRating" max="10" min="1" type="number"/>
+</div>
+</div>
+<div class="form-group">
+<label for="mediaReview">Reseña:</label>
+<textarea id="mediaReview"></textarea>
+</div>
+<button class="btn" type="submit">Guardar</button>
+</form>
+</div>
+</div>
+<!-- Book Modal -->
+<div class="modal" id="bookModal">
+<div class="modal-content">
+<span class="close" onclick="closeModal('bookModal')">×</span>
+<h2>📚 Nuevo Libro</h2>
+<form id="bookForm">
+<div class="form-group">
+<label for="bookTitle">Título:</label>
+<input id="bookTitle" required="" type="text"/>
+</div>
+<div class="form-row">
+<div class="form-group">
+<label for="bookAuthor">Autor:</label>
+<input id="bookAuthor" required="" type="text"/>
+</div>
+<div class="form-group">
+<label for="bookPages">Páginas:</label>
+<input id="bookPages" min="1" type="number"/>
+</div>
+</div>
+<div class="form-row">
+<div class="form-group">
+<label for="bookGenre">Género:</label>
+<input id="bookGenre" type="text"/>
+</div>
+<div class="form-group">
+<label for="bookFormat">Formato:</label>
+<select id="bookFormat">
+<option value="fisico">Físico</option>
+<option value="digital">Digital</option>
+<option value="audiolibro">Audiolibro</option>
+</select>
+</div>
+</div>
+<div class="form-row">
+<div class="form-group">
+<label for="bookStatus">Estado:</label>
+<select id="bookStatus">
+<option value="leyendo">Leyendo</option>
+<option value="terminado">Terminado</option>
+<option value="pausado">Pausado</option>
+<option value="abandonado">Abandonado</option>
+</select>
+</div>
+<div class="form-group">
+<label for="bookRating">Calificación (1-10):</label>
+<input id="bookRating" max="10" min="1" type="number"/>
+</div>
+</div>
+<div class="form-group">
+<label for="bookNotes">Notas:</label>
+<textarea id="bookNotes"></textarea>
+</div>
+<button class="btn" type="submit">Guardar Libro</button>
+</form>
+</div>
+</div>
+<!-- Course Modal -->
+<div class="modal" id="courseModal">
+<div class="modal-content">
+<span class="close" onclick="closeModal('courseModal')">×</span>
+<h2>🎓 Nuevo Curso</h2>
+<form id="courseForm">
+<div class="form-group">
+<label for="courseName">Nombre del Curso:</label>
+<input id="courseName" required="" type="text"/>
+</div>
+<div class="form-row">
+<div class="form-group">
+<label for="courseInstructor">Instructor:</label>
+<input id="courseInstructor" type="text"/>
+</div>
+<div class="form-group">
+<label for="coursePlatform">Plataforma:</label>
+<input id="coursePlatform" type="text"/>
+</div>
+</div>
+<div class="form-row">
+<div class="form-group">
+<label for="courseDuration">Duración (horas):</label>
+<input id="courseDuration" min="1" type="number"/>
+</div>
+<div class="form-group">
+<label for="courseProgress">Progreso (%):</label>
+<input id="courseProgress" max="100" min="0" type="number" value="0"/>
+</div>
+</div>
+<div class="form-row">
+<div class="form-group">
+<label for="courseStatus">Estado:</label>
+<select id="courseStatus">
+<option value="activo">Activo</option>
+<option value="completado">Completado</option>
+<option value="pausado">Pausado</option>
+</select>
+</div>
+<div class="form-group">
+<label for="courseRating">Calificación (1-10):</label>
+<input id="courseRating" max="10" min="1" type="number"/>
+</div>
+</div>
+<div class="form-group">
+<label for="courseSkills">Habilidades Aprendidas:</label>
+<textarea id="courseSkills"></textarea>
+</div>
+<button class="btn" type="submit">Guardar Curso</button>
+</form>
+</div>
+</div>
+<!-- Journal Modal -->
+<div class="modal" id="journalModal">
+<div class="modal-content">
+<span class="close" onclick="closeModal('journalModal')">×</span>
+<h2>📝 Nueva Entrada de Journal</h2>
+<form id="journalForm">
+<div class="form-row">
+<div class="form-group">
+<label for="journalDate">Fecha:</label>
+<input id="journalDate" required="" type="date"/>
+</div>
+<div class="form-group">
+<label for="journalMood">Estado de Ánimo:</label>
+<select id="journalMood">
+<option value="😄">😄 Excelente</option>
+<option value="😊">😊 Bien</option>
+<option value="😐">😐 Normal</option>
+<option value="😔">😔 Triste</option>
+<option value="😠">😠 Enojado</option>
+</select>
+</div>
+</div>
+<div class="form-group">
+<label for="journalTitle">Título del Día:</label>
+<input id="journalTitle" type="text"/>
+</div>
+<div class="form-group">
+<label for="journalContent">Reflexiones del Día:</label>
+<textarea id="journalContent" required=""></textarea>
+</div>
+<div class="form-group">
+<label for="journalGratitude">3 Cosas por las que estoy agradecido:</label>
+<textarea id="journalGratitude"></textarea>
+</div>
+<div class="form-row">
+<div class="form-group">
+<label for="journalEnergy">Nivel de Energía (1-10):</label>
+<input id="journalEnergy" max="10" min="1" type="number" value="5"/>
+</div>
+<div class="form-group">
+<label for="journalSleep">Calidad del Sueño (1-10):</label>
+<input id="journalSleep" max="10" min="1" type="number" value="5"/>
+</div>
+</div>
+<button class="btn" type="submit">Guardar Entrada</button>
+</form>
+</div>
+</div>
+<script>
         // Data storage
         let data = {
             habits: JSON.parse(localStorage.getItem('habits')) || [],
@@ -2468,19 +2465,34 @@ if (habit.frequency === 'daily') {
             });
         }
 
+        
         function createBookGenreChart() {
             const ctx = document.getElementById('bookGenreChart').getContext('2d');
-            
-            // Count books by genre
+
             const genres = {};
+            const colors = {};
+            const palette = [
+                '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0',
+                '#9966FF', '#FF9F40', '#66BB6A', '#BA68C8',
+                '#F06292', '#9575CD', '#26C6DA', '#D4E157',
+                '#EC407A', '#5C6BC0', '#9CCC65', '#FFA726',
+                '#AB47BC', '#26A69A', '#EF5350', '#42A5F5'
+            ];
+            let colorIndex = 0;
+
             data.books.forEach(book => {
                 if (book.genre) {
-                    genres[book.genre] = (genres[book.genre] || 0) + 1;
+                    if (!genres[book.genre]) {
+                        genres[book.genre] = 0;
+                        colors[book.genre] = palette[colorIndex % palette.length];
+                        colorIndex++;
+                    }
+                    genres[book.genre]++;
                 }
             });
-            
+
             if (bookGenreChart) bookGenreChart.destroy();
-            
+
             bookGenreChart = new Chart(ctx, {
                 type: 'bar',
                 data: {
@@ -2488,8 +2500,8 @@ if (habit.frequency === 'daily') {
                     datasets: [{
                         label: 'Cantidad',
                         data: Object.values(genres),
-                        backgroundColor: '#87ceeb',
-                        borderColor: '#5f9ea0',
+                        backgroundColor: Object.keys(genres).map(g => colors[g]),
+                        borderColor: '#000',
                         borderWidth: 1
                     }]
                 },
@@ -2505,8 +2517,7 @@ if (habit.frequency === 'daily') {
                 }
             });
         }
-
-        function renderMediaGenreChart() {
+function renderMediaGenreChart() {
             const genreCounts = {};
             data.media.forEach(item => {
             const genre = item.genre?.trim() || 'Sin género';
@@ -3398,7 +3409,7 @@ if (!isAllowed) {
             if (confirm('¿Estás seguro de que quieres eliminar este elemento?')) {
                 data.media.splice(index, 1);
                 saveData('media');
-                loadMedia();
+                renderMedia();
                 checkAchievements();
             }
         }
@@ -3588,6 +3599,7 @@ document.getElementById('expenseForm').addEventListener('submit', function(e) {
     checkAchievements();
 });
 
+
 document.getElementById('mediaForm').addEventListener('submit', function(e) {
     e.preventDefault();
     const media = {
@@ -3605,9 +3617,10 @@ document.getElementById('mediaForm').addEventListener('submit', function(e) {
     data.media.push(media);
     saveData('media');
     closeModal('mediaModal');
-    loadMedia();
+    renderMedia();  // actualiza vista en tiempo real
     checkAchievements();
 });
+
 
 document.getElementById('bookForm').addEventListener('submit', function(e) {
     e.preventDefault();
@@ -3733,7 +3746,6 @@ function descargarDatos() {
 console.log("HÁBITOS REGISTRADOS:", data.habits);
 
     </script>
-
 <script>
   document.querySelectorAll('.calendar-day.current-month').forEach(day => {
     day.addEventListener('click', () => {
@@ -3743,8 +3755,6 @@ console.log("HÁBITOS REGISTRADOS:", data.habits);
     });
   });
 </script>
-
-
 <script>
   // Clave de almacenamiento
   const HABIT_STORAGE_KEY = 'habitCompletions';
@@ -3786,10 +3796,6 @@ console.log("HÁBITOS REGISTRADOS:", data.habits);
   });
   renderMediaGenreChart();
 </script>
-
-
-
-
 <script>
 function generarGraficoGeneroMedia() {
     const conteoPorGenero = {};
@@ -3855,6 +3861,124 @@ window.onload = function () {
     if (typeof generarGraficoGeneroMedia === 'function') generarGraficoGeneroMedia();
 };
 </script>
+<script>
+function descargarDatos() {
+    const fecha = new Date();
+    const opciones = { month: 'long', year: 'numeric' };
+    const mes = fecha.toLocaleDateString('es-ES', opciones).toUpperCase();
 
+    const data = {
+        habits: JSON.parse(localStorage.getItem('habits')) || [],
+        incomes: JSON.parse(localStorage.getItem('incomes')) || [],
+        expenses: JSON.parse(localStorage.getItem('expenses')) || [],
+        media: JSON.parse(localStorage.getItem('media')) || [],
+        books: JSON.parse(localStorage.getItem('books')) || [],
+        courses: JSON.parse(localStorage.getItem('courses')) || [],
+        journal: JSON.parse(localStorage.getItem('journal')) || [],
+        achievements: JSON.parse(localStorage.getItem('achievements')) || []
+    };
+
+    const totalIngresos = data.incomes.reduce((acc, inc) => acc + parseFloat(inc.amount), 0);
+    const totalGastos = data.expenses.reduce((acc, exp) => acc + parseFloat(exp.amount), 0);
+    const balance = totalIngresos - totalGastos;
+
+    const reporte = [];
+
+    reporte.push(`🎯 REPORTE MENSUAL — ${mes}`);
+    reporte.push(`\n✅ HÁBITOS`);
+    data.habits.forEach(h => {
+        const completados = h.completedDays?.length || 0;
+        reporte.push(`• ${h.name}: ${completados} días completados`);
+    });
+
+    reporte.push(`\n💰 FINANZAS`);
+    reporte.push(`💚 Ingresos totales: $${totalIngresos.toFixed(2)}`);
+    reporte.push(`💸 Gastos totales: $${totalGastos.toFixed(2)}`);
+    reporte.push(`📊 Balance del mes: $${balance.toFixed(2)}`);
+    reporte.push(`📈 Transacciones registradas: ${data.incomes.length + data.expenses.length}`);
+
+    reporte.push(`\n🎬 ENTRETENIMIENTO`);
+    data.media.forEach(m => {
+        reporte.push(`• ${m.title} (${m.type}) — Calificación: ${m.rating || "N/A"}/10`);
+    });
+    reporte.push(`Total vistos: ${data.media.length}`);
+
+    reporte.push(`\n📚 LIBROS`);
+    data.books.forEach(b => {
+        reporte.push(`• ${b.title} de ${b.author} — ${b.status || "Sin estado"}`);
+    });
+
+    reporte.push(`\n🎓 CURSOS`);
+    data.courses.forEach(c => {
+        reporte.push(`• ${c.name} — Progreso: ${c.progress}% (${c.status})`);
+    });
+
+    reporte.push(`\n📝 JOURNAL`);
+    data.journal.forEach(j => {
+        reporte.push(`• ${j.date} — ${j.title || "Sin título"}: ${j.mood}`);
+    });
+
+    reporte.push(`\n🏆 LOGROS`);
+    const desbloqueados = data.achievements.filter(a => a.unlocked);
+    desbloqueados.forEach(a => {
+        reporte.push(`• ${a.title}`);
+    });
+    reporte.push(`Total desbloqueados: ${desbloqueados.length}`);
+
+    reporte.push(`\n📌 RESUMEN FINAL`);
+    reporte.push(`Este mes fue un paso más hacia tus metas. Seguiste avanzando con disciplina y enfoque.`);
+    reporte.push(`✨ Frase inspiradora: "La constancia vence al talento cuando el talento no es constante."`);
+
+    const blob = new Blob([reporte.join('\n')], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `Reporte_${mes.replace(/\s/g, '_')}.txt`;
+    a.click();
+    URL.revokeObjectURL(url);
+
+    localStorage.setItem('reportDownloaded', 'true');
+}
+</script>
+<script>
+function renderMedia() {
+    const peliculasList = document.getElementById("peliculasList");
+    const seriesList = document.getElementById("seriesList");
+    const animeList = document.getElementById("animeList");
+
+    peliculasList.innerHTML = "";
+    seriesList.innerHTML = "";
+    animeList.innerHTML = "";
+
+    data.media.forEach((item, index) => {
+        const itemHTML = `
+            <div class="item-card">
+                <div class="item-header">
+                    <h4 class="item-title">${item.title} (${item.year || "N/A"})</h4>
+                    <button class="btn btn-danger btn-small" onclick="deleteMedia(${index})">Eliminar</button>
+                </div>
+                <p><strong>Tipo:</strong> ${item.type}</p>
+                <p><strong>Género:</strong> ${item.genre || 'Sin especificar'}</p>
+                <p><strong>Plataforma:</strong> ${item.platform || 'N/A'}</p>
+                <p><strong>Estado:</strong> ${item.status || 'N/A'}</p>
+                <p><strong>Calificación:</strong> ${item.rating || 'N/A'}/10</p>
+            </div>
+        `;
+
+        if (item.type === "pelicula") {
+            peliculasList.innerHTML += itemHTML;
+        } else if (item.type === "serie") {
+            seriesList.innerHTML += itemHTML;
+        } else if (item.type === "anime") {
+            animeList.innerHTML += itemHTML;
+        }
+    });
+}
+window.addEventListener("DOMContentLoaded", () => {
+    renderMedia();
+});
+</script>
 </body>
 </html>
+<script>
+</script>
