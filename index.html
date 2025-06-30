@@ -3,146 +3,160 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tracker de Hábitos Avanzado</title>
+    <title>Mi Aplicación de Productividad Personal</title>
     <link href="icon.png" rel="icon" type="image/png"/>
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="container">
-        <header>
-            <div class="header-left">
-                <h1>🎯 Tracker de Hábitos</h1>
-                <div class="progress-summary" id="progressSummary">
-                    <span class="progress-item">📊 <span id="todayProgress">0/0</span> hoy</span>
-                    <span class="progress-item">🔥 <span id="bestStreak">0</span> mejor racha</span>
-                </div>
-            </div>
-            <div class="header-actions">
-                <button id="addHabitBtn" class="btn btn-primary">+ Agregar Hábito</button>
-                <div class="export-buttons">
-                    <button id="exportDataBtn" class="btn btn-secondary">📥 Exportar</button>
-                    <button id="exportStatsBtn" class="btn btn-secondary">📊 Estadísticas</button>
-                    <input type="file" id="importDataBtn" accept=".json" style="display: none;">
-                    <button onclick="document.getElementById('importDataBtn').click()" class="btn btn-secondary">📤 Importar</button>
-                </div>
-            </div>
-        </header>
+    <!-- Navegación -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <h1 class="nav-title">Mi Productividad</h1>
+            <ul class="nav-menu">
+                <li><a href="#habitos" class="nav-link">🔄 Hábitos</a></li>
+                <li><a href="#journal" class="nav-link">📝 Journal</a></li>
+                <li><a href="#metas" class="nav-link">🎯 Metas</a></li>
+            </ul>
+        </div>
+    </nav>
 
-        <div class="filters-section">
-            <div class="search-filter">
-                <input type="text" id="searchHabits" placeholder="🔍 Buscar hábitos..." class="search-input">
-            </div>
-            <div class="category-filters">
-                <button class="filter-btn active" data-category="all">Todos</button>
-                <div id="categoryFilters"></div>
+    <!-- Sección de Hábitos -->
+    <section id="habitos" class="section">
+        <div class="container">
+            <div class="habits-container-wrapper">
+    <header class="habits-header">
+        <div class="header-left">
+            <h1>🎯 Tracker de Hábitos</h1>
+            <div class="progress-summary" id="progressSummary">
+                <span class="progress-item">📊 <span id="todayProgress">0/0</span> hoy</span>
+                <span class="progress-item">🔥 <span id="bestStreak">0</span> mejor racha</span>
             </div>
         </div>
+        <div class="header-actions">
+            <button id="addHabitBtn" class="btn btn-primary">+ Agregar Hábito</button>
+            <div class="export-buttons">
+                <button id="exportDataBtn" class="btn btn-secondary">📥 Exportar</button>
+                <button id="exportStatsBtn" class="btn btn-secondary">📊 Estadísticas</button>
+                <input type="file" id="importDataBtn" accept=".json" style="display: none;">
+                <button onclick="document.getElementById('importDataBtn').click()" class="btn btn-secondary">📤 Importar</button>
+            </div>
+        </div>
+    </header>
 
-        <nav class="tabs">
-            <button class="tab-btn active" data-tab="today">📅 Hoy</button>
-            <button class="tab-btn" data-tab="all">📋 Todos</button>
-            <button class="tab-btn" data-tab="calendar">🗓️ Calendario</button>
-            <button class="tab-btn" data-tab="stats">📈 Estadísticas</button>
-        </nav>
-
-        <main>
-            <!-- Sección Hoy -->
-            <section id="today" class="tab-content active">
-                <div class="date-header">
-                    <h2 id="currentDate"></h2>
-                    <div class="daily-progress">
-                        <div class="progress-bar">
-                            <div class="progress-fill" id="dailyProgressFill"></div>
-                        </div>
-                        <span id="dailyProgressText">0% completado</span>
-                    </div>
-                </div>
-                <div id="todayHabits" class="habits-container">
-                    <div class="empty-state">
-                        <p>No hay hábitos programados para hoy</p>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Sección Todos los Hábitos -->
-            <section id="all" class="tab-content">
-                <div class="section-header">
-                    <h2>Todos los Hábitos</h2>
-                    <div class="view-options">
-                        <button class="view-btn active" data-view="grid">⊞</button>
-                        <button class="view-btn" data-view="list">☰</button>
-                    </div>
-                </div>
-                <div id="allHabits" class="habits-container">
-                    <div class="empty-state">
-                        <p>No tienes hábitos creados aún</p>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Sección Vista Calendario -->
-            <section id="calendar" class="tab-content">
-                <div class="calendar-controls">
-                    <div class="calendar-header">
-                        <button id="prevMonth" class="btn btn-secondary">‹</button>
-                        <h2 id="calendarMonth"></h2>
-                        <button id="nextMonth" class="btn btn-secondary">›</button>
-                    </div>
-                    <div class="habit-selector">
-                        <select id="calendarHabitSelect">
-                            <option value="">Selecciona un hábito</option>
-                        </select>
-                    </div>
-                </div>
-                <div id="calendarGrid" class="calendar-grid"></div>
-                <div class="calendar-legend">
-                    <div class="legend-item">
-                        <div class="legend-color completed"></div>
-                        <span>Completado</span>
-                    </div>
-                    <div class="legend-item">
-                        <div class="legend-color scheduled"></div>
-                        <span>Programado</span>
-                    </div>
-                    <div class="legend-item">
-                        <div class="legend-color today"></div>
-                        <span>Hoy</span>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Sección Estadísticas -->
-            <section id="stats" class="tab-content">
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <h3>📊 Resumen General</h3>
-                        <div class="stat-item">
-                            <span>Total de hábitos:</span>
-                            <strong id="totalHabits">0</strong>
-                        </div>
-                        <div class="stat-item">
-                            <span>Completados hoy:</span>
-                            <strong id="completedToday">0</strong>
-                        </div>
-                        <div class="stat-item">
-                            <span>Racha más larga:</span>
-                            <strong id="longestStreak">0 días</strong>
-                        </div>
-                    </div>
-                    
-                    <div class="stat-card">
-                        <h3>📈 Esta Semana</h3>
-                        <div id="weeklyChart" class="chart-container"></div>
-                    </div>
-                    
-                    <div class="stat-card">
-                        <h3>🏆 Mejores Hábitos</h3>
-                        <div id="topHabits" class="top-habits-list"></div>
-                    </div>
-                </div>
-            </section>
-        </main>
+    <div class="filters-section">
+        <div class="search-filter">
+            <input type="text" id="searchHabits" placeholder="🔍 Buscar hábitos..." class="search-input">
+        </div>
+        <div class="category-filters">
+            <button class="filter-btn active" data-category="all">Todos</button>
+            <div id="categoryFilters"></div>
+        </div>
     </div>
+
+    <nav class="tabs">
+        <button class="tab-btn active" data-tab="today">📅 Hoy</button>
+        <button class="tab-btn" data-tab="all">📋 Todos</button>
+        <button class="tab-btn" data-tab="calendar">🗓️ Calendario</button>
+        <button class="tab-btn" data-tab="stats">📈 Estadísticas</button>
+    </nav>
+
+    <main class="habits-main">
+        <!-- Sección Hoy -->
+        <section id="today" class="tab-content active">
+            <div class="date-header">
+                <h2 id="currentDate"></h2>
+                <div class="daily-progress">
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="dailyProgressFill"></div>
+                    </div>
+                    <span id="dailyProgressText">0% completado</span>
+                </div>
+            </div>
+            <div id="todayHabits" class="habits-container">
+                <div class="empty-state">
+                    <p>No hay hábitos programados para hoy</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Sección Todos los Hábitos -->
+        <section id="all" class="tab-content">
+            <div class="section-header">
+                <h2>Todos los Hábitos</h2>
+                <div class="view-options">
+                    <button class="view-btn active" data-view="grid">⊞</button>
+                    <button class="view-btn" data-view="list">☰</button>
+                </div>
+            </div>
+            <div id="allHabits" class="habits-container">
+                <div class="empty-state">
+                    <p>No tienes hábitos creados aún</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Sección Vista Calendario -->
+        <section id="calendar" class="tab-content">
+            <div class="calendar-controls">
+                <div class="calendar-header">
+                    <button id="prevMonth" class="btn btn-secondary">‹</button>
+                    <h2 id="calendarMonth"></h2>
+                    <button id="nextMonth" class="btn btn-secondary">›</button>
+                </div>
+                <div class="habit-selector">
+                    <select id="calendarHabitSelect">
+                        <option value="">Selecciona un hábito</option>
+                    </select>
+                </div>
+            </div>
+            <div id="calendarGrid" class="calendar-grid"></div>
+            <div class="calendar-legend">
+                <div class="legend-item">
+                    <div class="legend-color completed"></div>
+                    <span>Completado</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color scheduled"></div>
+                    <span>Programado</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color today"></div>
+                    <span>Hoy</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Sección Estadísticas -->
+        <section id="stats" class="tab-content">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <h3>📊 Resumen General</h3>
+                    <div class="stat-item">
+                        <span>Total de hábitos:</span>
+                        <strong id="totalHabits">0</strong>
+                    </div>
+                    <div class="stat-item">
+                        <span>Completados hoy:</span>
+                        <strong id="completedToday">0</strong>
+                    </div>
+                    <div class="stat-item">
+                        <span>Racha más larga:</span>
+                        <strong id="longestStreak">0 días</strong>
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <h3>📈 Esta Semana</h3>
+                    <div id="weeklyChart" class="chart-container"></div>
+                </div>
+                
+                <div class="stat-card">
+                    <h3>🏆 Mejores Hábitos</h3>
+                    <div id="topHabits" class="top-habits-list"></div>
+                </div>
+            </div>
+        </section>
+    </main>
 
     <!-- Modal para agregar/editar hábito -->
     <div id="habitModal" class="modal">
@@ -231,6 +245,256 @@
 
     <!-- Toast notifications -->
     <div id="toastContainer" class="toast-container"></div>
+</div>
+        </div>
+    </section>
+
+    <!-- Sección Journal Diario -->
+    <section id="journal" class="section">
+        <div class="container">
+            <h2 class="section-title">📝 Journal Diario</h2>
+            
+            <!-- Formulario de entrada -->
+            <div class="journal-form">
+                <div class="form-group">
+                    <label for="journal-text">¿Cómo fue tu día?</label>
+                    <textarea id="journal-text" placeholder="Escribe tus reflexiones aquí..."></textarea>
+                </div>
+
+                <!-- Estado de ánimo -->
+                <div class="mood-section">
+                    <h3>¿Cómo fue tu día?</h3>
+                    <div class="mood-options">
+                        <label class="mood-option">
+                            <input type="radio" name="dayMood" value="😍 Excelente">
+                            <span class="mood-emoji">😍</span>
+                            <span class="mood-text">Excelente</span>
+                        </label>
+                        <label class="mood-option">
+                            <input type="radio" name="dayMood" value="😊 Bueno">
+                            <span class="mood-emoji">😊</span>
+                            <span class="mood-text">Bueno</span>
+                        </label>
+                        <label class="mood-option">
+                            <input type="radio" name="dayMood" value="😐 Meh">
+                            <span class="mood-emoji">😐</span>
+                            <span class="mood-text">Meh</span>
+                        </label>
+                        <label class="mood-option">
+                            <input type="radio" name="dayMood" value="😞 Malo">
+                            <span class="mood-emoji">😞</span>
+                            <span class="mood-text">Malo</span>
+                        </label>
+                        <label class="mood-option">
+                            <input type="radio" name="dayMood" value="😡 Horrible">
+                            <span class="mood-emoji">😡</span>
+                            <span class="mood-text">Horrible</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Categorías -->
+                <div class="categories-section">
+                    <h3>Etiquetas del día</h3>
+                    
+                    <div class="category-group">
+                        <h4>🏥 Salud</h4>
+                        <div class="tags">
+                            <label class="tag"><input type="checkbox" value="🏋️ Hacer ejercicio"> 🏋️ Hacer ejercicio</label>
+                            <label class="tag"><input type="checkbox" value="🥗 Comer sano"> 🥗 Comer sano</label>
+                            <label class="tag"><input type="checkbox" value="💧 Beber agua"> 💧 Beber agua</label>
+                            <label class="tag"><input type="checkbox" value="🚶 Caminar"> 🚶 Caminar</label>
+                            <label class="tag"><input type="checkbox" value="🚴 Bicicletear"> 🚴 Bicicletear</label>
+                        </div>
+                    </div>
+
+                    <div class="category-group">
+                        <h4>💄 Belleza</h4>
+                        <div class="tags">
+                            <label class="tag"><input type="checkbox" value="🚽 Cagar"> 🚽 Cagar</label>
+                            <label class="tag"><input type="checkbox" value="💇 Corte de pelo"> 💇 Corte de pelo</label>
+                            <label class="tag"><input type="checkbox" value="💅 Manicura"> 💅 Manicura</label>
+                            <label class="tag"><input type="checkbox" value="🦶 Pedicura"> 🦶 Pedicura</label>
+                            <label class="tag"><input type="checkbox" value="🧴 Skincare"> 🧴 Skincare</label>
+                            <label class="tag"><input type="checkbox" value="🚿 Bañarse"> 🚿 Bañarse</label>
+                        </div>
+                    </div>
+
+                    <div class="category-group">
+                        <h4>😊 Emociones</h4>
+                        <div class="tags">
+                            <label class="tag"><input type="checkbox" value="😄 Feliz"> 😄 Feliz</label>
+                            <label class="tag"><input type="checkbox" value="🙂 Contento"> 🙂 Contento</label>
+                            <label class="tag"><input type="checkbox" value="🙏 Agradecido"> 🙏 Agradecido</label>
+                            <label class="tag"><input type="checkbox" value="😌 Relajado"> 😌 Relajado</label>
+                            <label class="tag"><input type="checkbox" value="😫 Cansado"> 😫 Cansado</label>
+                            <label class="tag"><input type="checkbox" value="😢 Triste"> 😢 Triste</label>
+                            <label class="tag"><input type="checkbox" value="😣 Estresado"> 😣 Estresado</label>
+                            <label class="tag"><input type="checkbox" value="😞 Decepcionado"> 😞 Decepcionado</label>
+                            <label class="tag"><input type="checkbox" value="😡 Enojado"> 😡 Enojado</label>
+                            <label class="tag"><input type="checkbox" value="😰 Ansioso"> 😰 Ansioso</label>
+                            <label class="tag"><input type="checkbox" value="😐 Aburrido"> 😐 Aburrido</label>
+                        </div>
+                    </div>
+
+                    <div class="category-group">
+                        <h4>🎯 Aficiones</h4>
+                        <div class="tags">
+                            <label class="tag"><input type="checkbox" value="📺 TV"> 📺 TV</label>
+                            <label class="tag"><input type="checkbox" value="📖 Lectura"> 📖 Lectura</label>
+                            <label class="tag"><input type="checkbox" value="🎮 Juegos"> 🎮 Juegos</label>
+                            <label class="tag"><input type="checkbox" value="🏀 Deporte"> 🏀 Deporte</label>
+                        </div>
+                    </div>
+
+                    <div class="category-group">
+                        <h4>📋 Tareas</h4>
+                        <div class="tags">
+                            <label class="tag"><input type="checkbox" value="🛒 Compras"> 🛒 Compras</label>
+                            <label class="tag"><input type="checkbox" value="🐶 Perritos"> 🐶 Perritos</label>
+                            <label class="tag"><input type="checkbox" value="🧹 Limpiar"> 🧹 Limpiar</label>
+                            <label class="tag"><input type="checkbox" value="🍳 Cocinar"> 🍳 Cocinar</label>
+                            <label class="tag"><input type="checkbox" value="🧺 Lavar"> 🧺 Lavar</label>
+                        </div>
+                    </div>
+
+                    <div class="category-group">
+                        <h4>🌤️ Tiempo</h4>
+                        <div class="tags">
+                            <label class="tag"><input type="checkbox" value="🌧 Lluvia"> 🌧 Lluvia</label>
+                            <label class="tag"><input type="checkbox" value="☀️ Calor"> ☀️ Calor</label>
+                            <label class="tag"><input type="checkbox" value="❄️ Frío"> ❄️ Frío</label>
+                            <label class="tag"><input type="checkbox" value="⛅ Despejado"> ⛅ Despejado</label>
+                            <label class="tag"><input type="checkbox" value="⛈ Tormenta"> ⛈ Tormenta</label>
+                        </div>
+                    </div>
+
+                    <div class="category-group">
+                        <h4>💕 Romance</h4>
+                        <div class="tags">
+                            <label class="tag"><input type="checkbox" value="💑 Cita"> 💑 Cita</label>
+                            <label class="tag"><input type="checkbox" value="🎁 Dar regalo"> 🎁 Dar regalo</label>
+                            <label class="tag"><input type="checkbox" value="🕒 Tiempo juntos"> 🕒 Tiempo juntos</label>
+                            <label class="tag"><input type="checkbox" value="💬 Conversación"> 💬 Conversación</label>
+                        </div>
+                    </div>
+
+                    <div class="category-group">
+                        <h4>📍 Lugares</h4>
+                        <div class="tags">
+                            <label class="tag"><input type="checkbox" value="🏠 Casa"> 🏠 Casa</label>
+                            <label class="tag"><input type="checkbox" value="💼 Trabajo"> 💼 Trabajo</label>
+                            <label class="tag"><input type="checkbox" value="🎓 Escuela"> 🎓 Escuela</label>
+                            <label class="tag"><input type="checkbox" value="🏋️ Gym"> 🏋️ Gym</label>
+                            <label class="tag"><input type="checkbox" value="🎬 Cine"> 🎬 Cine</label>
+                            <label class="tag"><input type="checkbox" value="🌳 Naturaleza"> 🌳 Naturaleza</label>
+                            <label class="tag"><input type="checkbox" value="🚶 Afuera"> 🚶 Afuera</label>
+                        </div>
+                    </div>
+                </div>
+
+                <button id="save-journal" class="btn btn-primary">💾 Guardar Entrada</button>
+            </div>
+
+            <!-- Lista de entradas pasadas -->
+            <div class="journal-entries">
+                <div class="journal-tabs">
+                    <button class="journal-tab-btn active" data-tab="entries">📚 Entradas</button>
+                    <button class="journal-tab-btn" data-tab="stats">📊 Estadísticas</button>
+                </div>
+                
+                <div id="journal-entries-tab" class="journal-tab-content active">
+                    <div id="entries-list"></div>
+                </div>
+                
+                <div id="journal-stats-tab" class="journal-tab-content">
+                    <div class="stats-overview">
+                        <div class="stat-card-small">
+                            <h4>📝 Total de entradas</h4>
+                            <span class="stat-number" id="totalEntries">0</span>
+                        </div>
+                        <div class="stat-card-small">
+                            <h4>📅 Días activos</h4>
+                            <span class="stat-number" id="activeDays">0</span>
+                        </div>
+                        <div class="stat-card-small">
+                            <h4>😊 Estado promedio</h4>
+                            <span class="stat-number" id="averageMood">-</span>
+                        </div>
+                    </div>
+                    
+                    <div class="mood-chart-container">
+                        <h4>📈 Estado de ánimo por día</h4>
+                        <div id="moodChart" class="mood-chart"></div>
+                    </div>
+                    
+                    <div class="tags-stats-container">
+                        <h4>🏷️ Etiquetas más usadas</h4>
+                        <div id="topTags" class="top-tags-list"></div>
+                    </div>
+                    
+                    <div class="mood-distribution">
+                        <h4>😊 Distribución de estados de ánimo</h4>
+                        <div id="moodDistribution" class="mood-dist-chart"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Sección Metas -->
+    <section id="metas" class="section">
+        <div class="container">
+            <h2 class="section-title">🎯 Mis Metas</h2>
+            
+            <!-- Formulario para crear metas -->
+            <div class="goals-form">
+                <h3>➕ Crear Nueva Meta</h3>
+                <div class="form-group">
+                    <label for="goal-description">📝 Descripción</label>
+                    <input type="text" id="goal-description" placeholder="Describe tu meta...">
+                </div>
+                
+                <div class="form-group">
+                    <label for="goal-category">🏷 Categoría</label>
+                    <input type="text" id="goal-category" placeholder="Ej: Salud, Trabajo, Personal...">
+                </div>
+                
+                <div class="form-group">
+                    <label for="goal-duration">⏳ Duración estimada</label>
+                    <select id="goal-duration">
+                        <option value="corto">Corto (1 a 3 meses)</option>
+                        <option value="medio">Medio (3 a 6 meses)</option>
+                        <option value="largo">Largo (6 a 12 meses)</option>
+                        <option value="futuro">Futuro (1 a 3 años)</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="goal-priority">🔥 Prioridad</label>
+                    <select id="goal-priority">
+                        <option value="alta">Alta</option>
+                        <option value="media">Media</option>
+                        <option value="baja">Baja</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="goal-deadline">📅 Fecha límite</label>
+                    <input type="date" id="goal-deadline" min="">
+                </div>
+                
+                <button id="add-goal" class="btn btn-primary">➕ Agregar Meta</button>
+                <button id="cancel-edit" class="btn btn-secondary" style="display: none;">❌ Cancelar</button>
+            </div>
+
+            <!-- Lista de metas -->
+            <div class="goals-list">
+                <h3>📋 Mis Metas</h3>
+                <div id="goals-container"></div>
+            </div>
+        </div>
+    </section>
 
     <script src="script.js"></script>
 </body>
