@@ -1,7 +1,523 @@
+// Variables globales
+let editingGoalId = null
+
+// Al inicio del archivo, después de las variables globales, agregar:
+function getUnifiedData() {
+  const data = JSON.parse(localStorage.getItem("productivityData") || "{}")
+  return {
+    habits: data.habits || [],
+    completions: data.completions || {},
+    journalEntries: data.journalEntries || [],
+    goals: data.goals || [],
+    version: "3.0",
+    lastUpdated: data.lastUpdated || new Date().toISOString(),
+  }
+}
+
+function saveUnifiedData(updates = {}) {
+  const currentData = getUnifiedData()
+  const newData = {
+    ...currentData,
+    ...updates,
+    lastUpdated: new Date().toISOString(),
+  }
+  localStorage.setItem("productivityData", JSON.stringify(newData))
+}
+
+// Inicialización
+document.addEventListener("DOMContentLoaded", () => {
+  initializeApp()
+})
+
+// Modificar la función initializeApp() para incluir la migración:
+function initializeApp() {
+  // Migrar datos antiguos si es necesario
+  migrateOldData()
+
+  // Cargar datos guardados
+  loadJournalEntries()
+  loadGoals()
+
+  // Event listeners
+  setupEventListeners()
+  setupJournalTabs()
+
+  // Navegación suave
+  setupSmoothNavigation()
+
+  // Renderizar estadísticas del journal
+  renderJournalStats()
+
+  // Configurar fecha mínima para metas
+  const today = new Date().toISOString().split("T")[0]
+  document.getElementById("goal-deadline").setAttribute("min", today)
+}
+
+function setupEventListeners() {
+  // Journal
+  document.getElementById("save-journal").addEventListener("click", saveJournalEntry)
+
+  // Metas
+  document.getElementById("add-goal").addEventListener("click", saveGoal)
+  document.getElementById("cancel-edit").addEventListener("click", cancelEditGoal)
+}
+
+function setupSmoothNavigation() {
+  document.querySelectorAll(".nav-link").forEach((link) => {
+    link.addEventListener("click", function (e) {
+      e.preventDefault()
+      const targetId = this.getAttribute("href")
+      const targetSection = document.querySelector(targetId)
+      if (targetSection) {
+        targetSection.scrollIntoView({
+          behavior: "smooth",
+          block: "start",
+        })
+      }
+    })
+  })
+}
+
+// ==================== JOURNAL DIARIO ====================
+
+// Reemplazar la función saveJournalEntry():
+function saveJournalEntry() {
+  const text = document.getElementById("journal-text").value.trim()
+  const selectedTags = getSelectedTags()
+  const selectedMood = document.querySelector('input[name="dayMood"]:checked')
+
+  if (!text) {
+    alert("Por favor escribe algo en tu journal antes de guardar.")
+    return
+  }
+
+  if (!selectedMood) {
+    alert("Por favor selecciona cómo fue tu día.")
+    return
+  }
+
+  const entry = {
+    id: Date.now(),
+    date: new Date().toISOString(),
+    text: text,
+    tags: selectedTags,
+    mood: selectedMood.value,
+  }
+
+  // Guardar en el sistema unificado
+  const currentData = getUnifiedData()
+  currentData.journalEntries.unshift(entry) // Agregar al inicio
+  saveUnifiedData({ journalEntries: currentData.journalEntries })
+
+  // Limpiar formulario
+  document.getElementById("journal-text").value = ""
+  clearSelectedTags()
+  clearSelectedMood()
+
+  // Recargar lista y estadísticas
+  loadJournalEntries()
+  renderJournalStats()
+
+  // Mensaje de éxito
+  showMessage("¡Entrada guardada exitosamente! 📝")
+}
+
+function clearSelectedMood() {
+  document.querySelectorAll('input[name="dayMood"]').forEach((radio) => {
+    radio.checked = false
+  })
+}
+
+function getSelectedTags() {
+  const checkboxes = document.querySelectorAll('.categories-section input[type="checkbox"]:checked')
+  return Array.from(checkboxes).map((cb) => cb.value)
+}
+
+function clearSelectedTags() {
+  document.querySelectorAll('.categories-section input[type="checkbox"]').forEach((cb) => {
+    cb.checked = false
+  })
+}
+
+// Reemplazar la función getJournalEntries():
+function getJournalEntries() {
+  return getUnifiedData().journalEntries
+}
+
+function loadJournalEntries() {
+  const entries = getJournalEntries()
+  const container = document.getElementById("entries-list")
+
+  if (entries.length === 0) {
+    container.innerHTML =
+      '<p style="text-align: center; color: #666;">No hay entradas aún. ¡Escribe tu primera reflexión!</p>'
+    return
+  }
+
+  container.innerHTML = entries
+    .map(
+      (entry) => `
+      <div class="journal-entry" data-entry-id="${entry.id}">
+          <div class="entry-header">
+              <div class="entry-date">${formatDate(entry.date)}</div>
+              <button class="delete-entry-btn" onclick="deleteJournalEntry(${entry.id})" title="Eliminar entrada">
+                  🗑️
+              </button>
+          </div>
+          ${entry.mood ? `<div class="entry-mood">${entry.mood}</div>` : ""}
+          <div class="entry-text">${entry.text}</div>
+          <div class="entry-tags">
+              ${entry.tags.map((tag) => `<span class="entry-tag">${tag}</span>`).join("")}
+          </div>
+      </div>
+  `,
+    )
+    .join("")
+}
+
+// Agregar la función deleteJournalEntry después de la función loadJournalEntries():
+
+function deleteJournalEntry(entryId) {
+  if (confirm("¿Estás seguro de que quieres eliminar esta entrada del journal? Esta acción no se puede deshacer.")) {
+    const currentData = getUnifiedData()
+    const filteredEntries = currentData.journalEntries.filter((entry) => entry.id !== entryId)
+
+    saveUnifiedData({ journalEntries: filteredEntries })
+
+    // Recargar lista y estadísticas
+    loadJournalEntries()
+    renderJournalStats()
+
+    showMessage("Entrada del journal eliminada 🗑️")
+  }
+}
+
+// ==================== METAS ====================
+
+// Reemplazar la función saveGoal():
+function saveGoal() {
+  const description = document.getElementById("goal-description").value.trim()
+  const category = document.getElementById("goal-category").value.trim()
+  const duration = document.getElementById("goal-duration").value
+  const priority = document.getElementById("goal-priority").value
+  const deadline = document.getElementById("goal-deadline").value
+
+  if (!description) {
+    alert("Por favor ingresa una descripción para tu meta.")
+    return
+  }
+
+  const currentData = getUnifiedData()
+  const goals = currentData.goals
+
+  if (editingGoalId) {
+    // Editar meta existente
+    const goalIndex = goals.findIndex((g) => g.id === editingGoalId)
+    if (goalIndex !== -1) {
+      goals[goalIndex] = {
+        ...goals[goalIndex],
+        description,
+        category: category || "General",
+        duration,
+        priority,
+        deadline: deadline || null,
+      }
+    }
+    editingGoalId = null
+    document.getElementById("add-goal").textContent = "➕ Agregar Meta"
+    document.getElementById("cancel-edit").style.display = "none"
+  } else {
+    // Nueva meta
+    const goal = {
+      id: Date.now(),
+      description,
+      category: category || "General",
+      duration,
+      priority,
+      deadline: deadline || null,
+      completed: false,
+      createdAt: new Date().toISOString(),
+    }
+    goals.push(goal)
+  }
+
+  // Guardar en el sistema unificado
+  saveUnifiedData({ goals: goals })
+
+  // Limpiar formulario
+  clearGoalForm()
+
+  // Recargar lista
+  loadGoals()
+
+  // Mensaje de éxito
+  showMessage(editingGoalId ? "¡Meta actualizada! 🎯" : "¡Meta agregada exitosamente! 🎯")
+}
+
+function clearGoalForm() {
+  document.getElementById("goal-description").value = ""
+  document.getElementById("goal-category").value = ""
+  document.getElementById("goal-duration").value = "corto"
+  document.getElementById("goal-priority").value = "media"
+  document.getElementById("goal-deadline").value = ""
+}
+
+function cancelEditGoal() {
+  editingGoalId = null
+  clearGoalForm()
+  document.getElementById("add-goal").textContent = "➕ Agregar Meta"
+  document.getElementById("cancel-edit").style.display = "none"
+}
+
+// Reemplazar la función getGoals():
+function getGoals() {
+  return getUnifiedData().goals
+}
+
+function loadGoals() {
+  const goals = getGoals()
+  const container = document.getElementById("goals-container")
+
+  if (goals.length === 0) {
+    container.innerHTML = '<p style="text-align: center; color: #666;">No hay metas aún. ¡Crea tu primera meta!</p>'
+    return
+  }
+
+  container.innerHTML = goals
+    .map((goal) => {
+      const deadlineInfo = getDeadlineInfo(goal.deadline)
+
+      return `
+        <div class="goal-item ${goal.completed ? "completed" : ""}" draggable="true" data-goal-id="${goal.id}">
+            <div class="goal-header">
+                <div class="goal-description">${goal.description}</div>
+                <div class="goal-priority priority-${goal.priority}">🔥 ${goal.priority.toUpperCase()}</div>
+            </div>
+            <div class="goal-details">
+                <span class="goal-category">🏷 ${goal.category}</span>
+                <span class="goal-duration">⏳ ${getDurationText(goal.duration)}</span>
+                ${deadlineInfo.html}
+            </div>
+            <div class="goal-actions">
+                <button class="btn btn-success" onclick="toggleGoalComplete(${goal.id})">
+                    ${goal.completed ? "↩️ Reactivar" : "✅ Completar"}
+                </button>
+                <button class="btn btn-secondary" onclick="editGoal(${goal.id})">✏️ Editar</button>
+                <button class="btn btn-danger" onclick="deleteGoal(${goal.id})">🗑️ Eliminar</button>
+            </div>
+        </div>
+    `
+    })
+    .join("")
+
+  // Configurar drag and drop
+  setupDragAndDrop()
+}
+
+function getDurationText(duration) {
+  const durations = {
+    corto: "Corto (1-3 meses)",
+    medio: "Medio (3-6 meses)",
+    largo: "Largo (6-12 meses)",
+    futuro: "Futuro (1-3 años)",
+  }
+  return durations[duration] || duration
+}
+
+// Reemplazar la función toggleGoalComplete():
+function toggleGoalComplete(goalId) {
+  const currentData = getUnifiedData()
+  const goals = currentData.goals
+  const goalIndex = goals.findIndex((g) => g.id === goalId)
+
+  if (goalIndex !== -1) {
+    goals[goalIndex].completed = !goals[goalIndex].completed
+    saveUnifiedData({ goals: goals })
+    loadGoals()
+
+    const message = goals[goalIndex].completed ? "¡Meta completada! 🎉" : "Meta reactivada 🔄"
+    showMessage(message)
+  }
+}
+
+function editGoal(goalId) {
+  const goals = getGoals()
+  const goal = goals.find((g) => g.id === goalId)
+
+  if (goal) {
+    document.getElementById("goal-description").value = goal.description
+    document.getElementById("goal-category").value = goal.category
+    document.getElementById("goal-duration").value = goal.duration
+    document.getElementById("goal-priority").value = goal.priority
+    document.getElementById("goal-deadline").value = goal.deadline || ""
+
+    editingGoalId = goalId
+    document.getElementById("add-goal").textContent = "💾 Actualizar Meta"
+    document.getElementById("cancel-edit").style.display = "inline-block"
+
+    // Scroll al formulario
+    document.querySelector(".goals-form").scrollIntoView({ behavior: "smooth" })
+  }
+}
+
+// Reemplazar la función deleteGoal():
+function deleteGoal(goalId) {
+  if (confirm("¿Estás seguro de que quieres eliminar esta meta?")) {
+    const currentData = getUnifiedData()
+    const filteredGoals = currentData.goals.filter((g) => g.id !== goalId)
+    saveUnifiedData({ goals: filteredGoals })
+    loadGoals()
+    showMessage("Meta eliminada 🗑️")
+  }
+}
+
+// ==================== DRAG AND DROP ====================
+
+function setupDragAndDrop() {
+  const goalItems = document.querySelectorAll(".goal-item")
+
+  goalItems.forEach((item) => {
+    item.addEventListener("dragstart", handleDragStart)
+    item.addEventListener("dragover", handleDragOver)
+    item.addEventListener("drop", handleDrop)
+    item.addEventListener("dragend", handleDragEnd)
+  })
+}
+
+let draggedElement = null
+
+function handleDragStart(e) {
+  draggedElement = this
+  this.classList.add("dragging")
+  e.dataTransfer.effectAllowed = "move"
+  e.dataTransfer.setData("text/html", this.outerHTML)
+}
+
+function handleDragOver(e) {
+  if (e.preventDefault) {
+    e.preventDefault()
+  }
+
+  this.classList.add("drag-over")
+  e.dataTransfer.dropEffect = "move"
+  return false
+}
+
+function handleDrop(e) {
+  if (e.stopPropagation) {
+    e.stopPropagation()
+  }
+
+  if (draggedElement !== this) {
+    // Reordenar elementos
+    const container = document.getElementById("goals-container")
+    const allItems = Array.from(container.children)
+    const draggedIndex = allItems.indexOf(draggedElement)
+    const targetIndex = allItems.indexOf(this)
+
+    if (draggedIndex < targetIndex) {
+      container.insertBefore(draggedElement, this.nextSibling)
+    } else {
+      container.insertBefore(draggedElement, this)
+    }
+
+    // Actualizar orden en localStorage
+    updateGoalsOrder()
+  }
+
+  this.classList.remove("drag-over")
+  return false
+}
+
+function handleDragEnd(e) {
+  this.classList.remove("dragging")
+
+  // Limpiar clases de drag-over
+  document.querySelectorAll(".goal-item").forEach((item) => {
+    item.classList.remove("drag-over")
+  })
+}
+
+// Reemplazar la función updateGoalsOrder():
+function updateGoalsOrder() {
+  const goalItems = document.querySelectorAll(".goal-item")
+  const currentData = getUnifiedData()
+  const goals = currentData.goals
+  const reorderedGoals = []
+
+  goalItems.forEach((item) => {
+    const goalId = Number.parseInt(item.dataset.goalId)
+    const goal = goals.find((g) => g.id === goalId)
+    if (goal) {
+      reorderedGoals.push(goal)
+    }
+  })
+
+  saveUnifiedData({ goals: reorderedGoals })
+}
+
+// ==================== UTILIDADES ====================
+
+function formatDate(dateString) {
+  const date = new Date(dateString)
+  const options = {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  }
+  return date.toLocaleDateString("es-ES", options)
+}
+
+function showMessage(message) {
+  // Crear elemento de mensaje
+  const messageEl = document.createElement("div")
+  messageEl.textContent = message
+  messageEl.style.cssText = `
+        position: fixed;
+        top: 100px;
+        right: 20px;
+        background: #28a745;
+        color: white;
+        padding: 1rem 1.5rem;
+        border-radius: 10px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        z-index: 1001;
+        animation: slideIn 0.3s ease;
+    `
+
+  // Agregar animación CSS
+  const style = document.createElement("style")
+  style.textContent = `
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+    `
+  document.head.appendChild(style)
+
+  document.body.appendChild(messageEl)
+
+  // Remover después de 3 segundos
+  setTimeout(() => {
+    messageEl.style.animation = "slideIn 0.3s ease reverse"
+    setTimeout(() => {
+      if (messageEl.parentNode) {
+        messageEl.parentNode.removeChild(messageEl)
+      }
+    }, 300)
+  }, 3000)
+}
+
+// ==================== TRACKER DE HÁBITOS ====================
+
 class HabitTracker {
+  // En la clase HabitTracker, reemplazar el constructor:
   constructor() {
-    this.habits = JSON.parse(localStorage.getItem("habits")) || []
-    this.completions = JSON.parse(localStorage.getItem("completions")) || {}
+    const unifiedData = getUnifiedData()
+    this.habits = unifiedData.habits
+    this.completions = unifiedData.completions
     this.currentDate = new Date()
     this.currentCalendarDate = new Date()
     this.selectedHabitForCalendar = ""
@@ -10,7 +526,7 @@ class HabitTracker {
     this.currentView = "grid"
     this.searchQuery = ""
 
-    this.init()
+    this.initHabits()
   }
 
   cleanupHabits() {
@@ -27,12 +543,12 @@ class HabitTracker {
       if (!habit.createdAt) habit.createdAt = new Date().toISOString()
     })
 
-    this.saveToStorage()
+    this.saveHabitsToStorage()
   }
 
-  init() {
-    this.cleanupHabits() // Añadir esta línea
-    this.setupEventListeners()
+  initHabits() {
+    this.cleanupHabits()
+    this.setupHabitsEventListeners()
     this.updateCurrentDate()
     this.updateProgressSummary()
     this.renderTodayHabits()
@@ -44,15 +560,15 @@ class HabitTracker {
     this.updateCategoryDatalist()
   }
 
-  setupEventListeners() {
+  setupHabitsEventListeners() {
     // Tabs
-    document.querySelectorAll(".tab-btn").forEach((btn) => {
+    document.querySelectorAll(".habits-container-wrapper .tab-btn").forEach((btn) => {
       btn.addEventListener("click", (e) => this.switchTab(e.target.dataset.tab))
     })
 
     // Modal
     document.getElementById("addHabitBtn").addEventListener("click", () => this.openModal())
-    document.querySelector(".close-btn").addEventListener("click", () => this.closeModal())
+    document.querySelector(".habits-container-wrapper .close-btn").addEventListener("click", () => this.closeModal())
     document.getElementById("cancelBtn").addEventListener("click", () => this.closeModal())
     document.getElementById("habitForm").addEventListener("submit", (e) => this.saveHabit(e))
 
@@ -60,7 +576,7 @@ class HabitTracker {
     document.getElementById("habitType").addEventListener("change", (e) => this.handleHabitTypeChange(e.target.value))
 
     // Color picker
-    document.querySelectorAll(".color-option").forEach((option) => {
+    document.querySelectorAll(".habits-container-wrapper .color-option").forEach((option) => {
       option.addEventListener("click", (e) => {
         document.getElementById("habitColor").value = e.target.dataset.color
       })
@@ -72,12 +588,12 @@ class HabitTracker {
       this.renderAllHabits()
     })
 
-    document.querySelectorAll(".filter-btn").forEach((btn) => {
+    document.querySelectorAll(".habits-container-wrapper .filter-btn").forEach((btn) => {
       btn.addEventListener("click", (e) => this.setFilter(e.target.dataset.category))
     })
 
     // View options
-    document.querySelectorAll(".view-btn").forEach((btn) => {
+    document.querySelectorAll(".habits-container-wrapper .view-btn").forEach((btn) => {
       btn.addEventListener("click", (e) => this.setView(e.target.dataset.view))
     })
 
@@ -97,13 +613,6 @@ class HabitTracker {
     // Modal click outside to close
     document.getElementById("habitModal").addEventListener("click", (e) => {
       if (e.target.id === "habitModal") this.closeModal()
-    })
-
-    // Keyboard shortcuts
-    document.addEventListener("keydown", (e) => {
-      if (e.key === "Escape" && document.getElementById("habitModal").style.display === "block") {
-        this.closeModal()
-      }
     })
   }
 
@@ -142,15 +651,15 @@ class HabitTracker {
 
   setFilter(category) {
     this.currentFilter = category
-    document.querySelectorAll(".filter-btn").forEach((btn) => btn.classList.remove("active"))
-    document.querySelector(`[data-category="${category}"]`).classList.add("active")
+    document.querySelectorAll(".habits-container-wrapper .filter-btn").forEach((btn) => btn.classList.remove("active"))
+    document.querySelector(`.habits-container-wrapper [data-category="${category}"]`).classList.add("active")
     this.renderAllHabits()
   }
 
   setView(view) {
     this.currentView = view
-    document.querySelectorAll(".view-btn").forEach((btn) => btn.classList.remove("active"))
-    document.querySelector(`[data-view="${view}"]`).classList.add("active")
+    document.querySelectorAll(".habits-container-wrapper .view-btn").forEach((btn) => btn.classList.remove("active"))
+    document.querySelector(`.habits-container-wrapper [data-view="${view}"]`).classList.add("active")
 
     const container = document.getElementById("allHabits")
     if (view === "list") {
@@ -161,10 +670,12 @@ class HabitTracker {
   }
 
   switchTab(tabName) {
-    document.querySelectorAll(".tab-btn").forEach((btn) => btn.classList.remove("active"))
-    document.querySelectorAll(".tab-content").forEach((content) => content.classList.remove("active"))
+    document.querySelectorAll(".habits-container-wrapper .tab-btn").forEach((btn) => btn.classList.remove("active"))
+    document
+      .querySelectorAll(".habits-container-wrapper .tab-content")
+      .forEach((content) => content.classList.remove("active"))
 
-    document.querySelector(`[data-tab="${tabName}"]`).classList.add("active")
+    document.querySelector(`.habits-container-wrapper [data-tab="${tabName}"]`).classList.add("active")
     document.getElementById(tabName).classList.add("active")
 
     if (tabName === "calendar") {
@@ -228,7 +739,7 @@ class HabitTracker {
     if (habitId) {
       const habit = this.habits.find((h) => h.id === habitId)
       if (!habit) {
-        this.showToast("Hábito no encontrado", "error")
+        this.showHabitToast("Hábito no encontrado", "error")
         return
       }
 
@@ -307,8 +818,6 @@ class HabitTracker {
   saveHabit(e) {
     e.preventDefault()
 
-    console.log("Guardando hábito...") // Debug
-
     const name = document.getElementById("habitName").value.trim()
     const category = document.getElementById("habitCategory").value.trim() || "General"
     const color = document.getElementById("habitColor").value
@@ -316,24 +825,22 @@ class HabitTracker {
     const goal = Number.parseInt(document.getElementById("habitGoal").value) || null
     const notes = document.getElementById("habitNotes").value.trim()
 
-    // Obtener días seleccionados - CORREGIDO
+    // Obtener días seleccionados
     const dayCheckboxes = document.querySelectorAll('.days-selector input[type="checkbox"]:checked')
     const days = []
     dayCheckboxes.forEach((checkbox) => {
       days.push(Number.parseInt(checkbox.value))
     })
 
-    console.log("Días seleccionados:", days) // Debug
-
     // Validaciones
     if (!name) {
-      this.showToast("Por favor ingresa un nombre para el hábito", "error")
+      this.showHabitToast("Por favor ingresa un nombre para el hábito", "error")
       document.getElementById("habitName").focus()
       return
     }
 
     if (days.length === 0) {
-      this.showToast("Por favor selecciona al menos un día", "error")
+      this.showHabitToast("Por favor selecciona al menos un día", "error")
       return
     }
 
@@ -353,24 +860,20 @@ class HabitTracker {
       order: this.editingHabitId ? this.habits.find((h) => h.id === this.editingHabitId).order : this.habits.length,
     }
 
-    console.log("Hábito a guardar:", habit) // Debug
-
     // Guardar hábito
     if (this.editingHabitId) {
       const index = this.habits.findIndex((h) => h.id === this.editingHabitId)
       if (index !== -1) {
         this.habits[index] = habit
-        this.showToast("Hábito actualizado correctamente", "success")
+        this.showHabitToast("Hábito actualizado correctamente", "success")
       }
     } else {
       this.habits.push(habit)
-      this.showToast("Hábito creado correctamente", "success")
+      this.showHabitToast("Hábito creado correctamente", "success")
     }
 
-    console.log("Lista de hábitos después de guardar:", this.habits) // Debug
-
     // Guardar en localStorage
-    this.saveToStorage()
+    this.saveHabitsToStorage()
 
     // Actualizar todas las vistas
     this.updateProgressSummary()
@@ -382,13 +885,6 @@ class HabitTracker {
 
     // Cerrar modal
     this.closeModal()
-
-    // Cambiar a la pestaña "Todos" para mostrar el hábito creado
-    if (!this.editingHabitId) {
-      setTimeout(() => {
-        this.switchTab("all")
-      }, 100)
-    }
   }
 
   deleteHabit(habitId) {
@@ -402,13 +898,13 @@ class HabitTracker {
         }
       })
 
-      this.saveToStorage()
+      this.saveHabitsToStorage()
       this.updateProgressSummary()
       this.renderTodayHabits()
       this.renderAllHabits()
       this.updateCalendarHabitSelector()
       this.updateCategoryFilters()
-      this.showToast("Hábito eliminado", "success")
+      this.showHabitToast("Hábito eliminado", "success")
     }
   }
 
@@ -422,7 +918,7 @@ class HabitTracker {
     const wasCompleted = this.completions[dateKey][habitId]
     this.completions[dateKey][habitId] = !wasCompleted
 
-    this.saveToStorage()
+    this.saveHabitsToStorage()
     this.updateProgressSummary()
     this.renderTodayHabits()
     this.renderCalendar()
@@ -430,7 +926,7 @@ class HabitTracker {
     const habit = this.habits.find((h) => h.id === habitId)
     if (habit) {
       const message = wasCompleted ? `❌ ${habit.name} marcado como no completado` : `✅ ¡${habit.name} completado!`
-      this.showToast(message, wasCompleted ? "error" : "success")
+      this.showHabitToast(message, wasCompleted ? "error" : "success")
     }
   }
 
@@ -508,65 +1004,6 @@ class HabitTracker {
     return streak
   }
 
-  calculateMonthlyCompletion(habitId) {
-    const habit = this.habits.find((h) => h.id === habitId)
-    if (!habit) return 0
-
-    const now = new Date()
-    const firstDay = new Date(now.getFullYear(), now.getMonth(), 1)
-    const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0)
-
-    let scheduled = 0
-    let completed = 0
-
-    for (let d = new Date(firstDay); d <= lastDay; d.setDate(d.getDate() + 1)) {
-      if (habit.days.includes(d.getDay())) {
-        scheduled++
-        if (this.isHabitCompleted(habitId, d)) {
-          completed++
-        }
-      }
-    }
-
-    return scheduled > 0 ? Math.round((completed / scheduled) * 100) : 0
-  }
-
-  calculateLongestStreak(habitId) {
-    const habit = this.habits.find((h) => h.id === habitId)
-    if (!habit) return 0
-
-    let longestStreak = 0
-    let currentStreak = 0
-
-    // Obtener todas las fechas ordenadas
-    const allDates = Object.keys(this.completions).sort()
-
-    // Crear un rango de fechas desde la creación del hábito hasta hoy
-    const startDate = new Date(habit.createdAt)
-    const endDate = new Date()
-    const dateRange = []
-
-    for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
-      dateRange.push(this.formatDate(new Date(d)))
-    }
-
-    dateRange.forEach((dateKey) => {
-      const date = new Date(dateKey)
-
-      // Solo considerar días programados
-      if (habit.days.includes(date.getDay())) {
-        if (this.completions[dateKey] && this.completions[dateKey][habitId]) {
-          currentStreak++
-          longestStreak = Math.max(longestStreak, currentStreak)
-        } else {
-          currentStreak = 0
-        }
-      }
-    })
-
-    return longestStreak
-  }
-
   calculateWeeklyProgress(habitId) {
     const habit = this.habits.find((h) => h.id === habitId)
     if (!habit) return { completed: 0, total: 0 }
@@ -591,113 +1028,6 @@ class HabitTracker {
     }
 
     return { completed, total }
-  }
-
-  renderWeeklyChart() {
-    const container = document.getElementById("weeklyChart")
-    const today = new Date()
-    const startOfWeek = new Date(today)
-    startOfWeek.setDate(today.getDate() - today.getDay())
-
-    let html = ""
-    const dayNames = ["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"]
-
-    for (let i = 0; i < 7; i++) {
-      const date = new Date(startOfWeek)
-      date.setDate(startOfWeek.getDate() + i)
-
-      const habitsForDay = this.habits.filter(
-        (habit) => habit.days && Array.isArray(habit.days) && habit.days.includes(date.getDay()),
-      )
-      const completedForDay = habitsForDay.filter((habit) => this.isHabitCompleted(habit.id, date)).length
-
-      const percentage = habitsForDay.length > 0 ? (completedForDay / habitsForDay.length) * 100 : 0
-      const height = Math.max(4, percentage)
-
-      html += `<div class="chart-bar" 
-                        style="height: ${height}%" 
-                        data-day="${dayNames[i]}"
-                        title="${completedForDay}/${habitsForDay.length} completados"></div>`
-    }
-
-    container.innerHTML = html
-  }
-
-  renderTopHabits() {
-    const container = document.getElementById("topHabits")
-
-    const habitStats = this.habits
-      .map((habit) => {
-        const streak = this.calculateStreak(habit.id)
-        const weeklyProgress = this.calculateWeeklyProgress(habit.id)
-        const completionRate =
-          weeklyProgress.total > 0 ? Math.round((weeklyProgress.completed / weeklyProgress.total) * 100) : 0
-
-        return {
-          ...habit,
-          streak,
-          completionRate,
-          score: streak * 2 + completionRate,
-        }
-      })
-      .sort((a, b) => b.score - a.score)
-      .slice(0, 5)
-
-    if (habitStats.length === 0) {
-      container.innerHTML = '<p class="empty-state">No hay datos suficientes aún</p>'
-      return
-    }
-
-    container.innerHTML = habitStats
-      .map(
-        (habit) => `
-          <div class="top-habit-item">
-              <div class="top-habit-name">${habit.name}</div>
-              <div class="top-habit-score">${habit.completionRate}% esta semana</div>
-          </div>
-      `,
-      )
-      .join("")
-  }
-
-  getCategoryStats() {
-    const categories = [...new Set(this.habits.map((h) => h.category))]
-
-    return categories
-      .map((category) => {
-        const categoryHabits = this.habits.filter((h) => h.category === category)
-        const totalHabits = categoryHabits.length
-
-        let totalScheduled = 0
-        let totalCompleted = 0
-
-        // Calcular para este mes
-        const now = new Date()
-        const firstDay = new Date(now.getFullYear(), now.getMonth(), 1)
-        const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0)
-
-        categoryHabits.forEach((habit) => {
-          for (let d = new Date(firstDay); d <= lastDay; d.setDate(d.getDate() + 1)) {
-            if (habit.days.includes(d.getDay())) {
-              totalScheduled++
-              if (this.isHabitCompleted(habit.id, d)) {
-                totalCompleted++
-              }
-            }
-          }
-        })
-
-        const completionRate = totalScheduled > 0 ? Math.round((totalCompleted / totalScheduled) * 100) : 0
-
-        return {
-          name: category,
-          habits: totalHabits,
-          completionRate,
-          totalCompleted,
-          totalScheduled,
-        }
-      })
-      .sort((a, b) => b.completionRate - a.completionRate)
   }
 
   renderTodayHabits() {
@@ -752,7 +1082,59 @@ class HabitTracker {
       })
       .join("")
 
-    this.setupDragAndDrop(container)
+    this.setupHabitsDragAndDrop(container)
+  }
+
+  setupHabitsDragAndDrop(container) {
+    const cards = container.querySelectorAll(".habit-card")
+
+    cards.forEach((card) => {
+      card.addEventListener("dragstart", (e) => {
+        card.classList.add("dragging")
+        e.dataTransfer.setData("text/plain", card.dataset.habitId)
+        e.dataTransfer.effectAllowed = "move"
+      })
+
+      card.addEventListener("dragend", () => {
+        card.classList.remove("dragging")
+      })
+
+      card.addEventListener("dragover", (e) => {
+        e.preventDefault()
+        e.dataTransfer.dropEffect = "move"
+      })
+
+      card.addEventListener("drop", (e) => {
+        e.preventDefault()
+        const draggedId = e.dataTransfer.getData("text/plain")
+        const targetId = card.dataset.habitId
+
+        if (draggedId !== targetId) {
+          this.reorderHabits(draggedId, targetId)
+        }
+      })
+    })
+  }
+
+  reorderHabits(draggedId, targetId) {
+    const draggedIndex = this.habits.findIndex((h) => h.id === draggedId)
+    const targetIndex = this.habits.findIndex((h) => h.id === targetId)
+
+    if (draggedIndex === -1 || targetIndex === -1) return
+
+    const draggedHabit = this.habits[draggedIndex]
+    this.habits.splice(draggedIndex, 1)
+    this.habits.splice(targetIndex, 0, draggedHabit)
+
+    // Update order values
+    this.habits.forEach((habit, index) => {
+      habit.order = index
+    })
+
+    this.saveHabitsToStorage()
+    this.renderTodayHabits()
+    this.renderAllHabits()
+    this.showHabitToast("Orden actualizado", "success")
   }
 
   renderAllHabits() {
@@ -809,56 +1191,6 @@ class HabitTracker {
             `
       })
       .join("")
-
-    this.setupDragAndDrop(container)
-  }
-
-  setupDragAndDrop(container) {
-    const cards = container.querySelectorAll(".habit-card")
-
-    cards.forEach((card) => {
-      card.addEventListener("dragstart", (e) => {
-        card.classList.add("dragging")
-        e.dataTransfer.setData("text/plain", card.dataset.habitId)
-      })
-
-      card.addEventListener("dragend", () => {
-        card.classList.remove("dragging")
-      })
-
-      card.addEventListener("dragover", (e) => {
-        e.preventDefault()
-      })
-
-      card.addEventListener("drop", (e) => {
-        e.preventDefault()
-        const draggedId = e.dataTransfer.getData("text/plain")
-        const targetId = card.dataset.habitId
-
-        if (draggedId !== targetId) {
-          this.reorderHabits(draggedId, targetId)
-        }
-      })
-    })
-  }
-
-  reorderHabits(draggedId, targetId) {
-    const draggedIndex = this.habits.findIndex((h) => h.id === draggedId)
-    const targetIndex = this.habits.findIndex((h) => h.id === targetId)
-
-    const draggedHabit = this.habits[draggedIndex]
-    this.habits.splice(draggedIndex, 1)
-    this.habits.splice(targetIndex, 0, draggedHabit)
-
-    // Update order values
-    this.habits.forEach((habit, index) => {
-      habit.order = index
-    })
-
-    this.saveToStorage()
-    this.renderTodayHabits()
-    this.renderAllHabits()
-    this.showToast("Orden actualizado", "success")
   }
 
   updateCalendarHabitSelector() {
@@ -947,156 +1279,96 @@ class HabitTracker {
     const totalHabits = this.habits.length
     const todayHabits = this.getHabitsForToday()
     const completedToday = todayHabits.filter((habit) => this.isHabitCompleted(habit.id, this.currentDate)).length
-    const longestStreak = Math.max(0, ...this.habits.map((habit) => this.calculateLongestStreak(habit.id)))
-
-    // Calcular promedio mensual
-    const monthlyRates = this.habits.map((habit) => this.calculateMonthlyCompletion(habit.id))
-    const avgMonthlyCompletion =
-      monthlyRates.length > 0 ? Math.round(monthlyRates.reduce((a, b) => a + b, 0) / monthlyRates.length) : 0
-
-    // Calcular días activos (días en los que se completó al menos un hábito)
-    const activeDays = Object.keys(this.completions).filter((date) => {
-      return Object.values(this.completions[date]).some((completed) => completed)
-    }).length
+    const longestStreak = Math.max(0, ...this.habits.map((habit) => this.calculateStreak(habit.id)))
 
     document.getElementById("totalHabits").textContent = totalHabits
     document.getElementById("completedToday").textContent = `${completedToday}/${todayHabits.length}`
     document.getElementById("longestStreak").textContent = `${longestStreak} días`
 
-    // Actualizar estadísticas adicionales
-    const statsContainer = document.querySelector(".stats-grid")
-
-    statsContainer.innerHTML = `
-    <div class="stat-card highlight">
-      <h3>📊 Resumen General</h3>
-      <div class="stat-item">
-        <span>Total de hábitos:</span>
-        <strong>${totalHabits}</strong>
-      </div>
-      <div class="stat-item">
-        <span>Completados hoy:</span>
-        <strong>${completedToday}/${todayHabits.length}</strong>
-      </div>
-      <div class="stat-item">
-        <span>Racha más larga:</span>
-        <strong>${longestStreak} días</strong>
-      </div>
-      <div class="stat-item">
-        <span>Días activos:</span>
-        <strong>${activeDays}</strong>
-      </div>
-    </div>
-    
-    <div class="stat-card">
-      <h3>📈 Rendimiento Mensual</h3>
-      <div class="progress-ring">
-        <svg>
-          <circle class="bg" cx="40" cy="40" r="32" stroke-dasharray="201" stroke-dashoffset="0"></circle>
-          <circle class="progress" cx="40" cy="40" r="32" stroke-dasharray="201" stroke-dashoffset="${201 - (201 * avgMonthlyCompletion) / 100}"></circle>
-        </svg>
-      </div>
-      <div class="stat-number">${avgMonthlyCompletion}%</div>
-      <div class="stat-label">Promedio de completación</div>
-    </div>
-    
-    <div class="stat-card">
-      <h3>📅 Esta Semana</h3>
-      <div id="weeklyChart" class="chart-container"></div>
-    </div>
-    
-    <div class="stat-card">
-      <h3>🏆 Mejores Hábitos</h3>
-      <div id="topHabits" class="top-habits-list"></div>
-    </div>
-    
-    <div class="stat-card">
-      <h3>📂 Por Categorías</h3>
-      <div id="categoryStats" class="category-stats"></div>
-    </div>
-    
-    <div class="stat-card">
-      <h3>🎯 Hábitos Más Consistentes</h3>
-      <div id="consistentHabits" class="top-habits-list"></div>
-    </div>
-  `
-
-    // Renderizar gráficos específicos
     this.renderWeeklyChart()
     this.renderTopHabits()
-    this.renderCategoryStats()
-    this.renderConsistentHabits()
   }
 
-  renderCategoryStats() {
-    const container = document.getElementById("categoryStats")
-    const categoryStats = this.getCategoryStats()
+  renderWeeklyChart() {
+    const container = document.getElementById("weeklyChart")
+    const today = new Date()
+    const startOfWeek = new Date(today)
+    startOfWeek.setDate(today.getDate() - today.getDay())
 
-    if (categoryStats.length === 0) {
-      container.innerHTML = '<p class="empty-state">No hay categorías aún</p>'
-      return
+    let html = ""
+    const dayNames = ["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"]
+
+    for (let i = 0; i < 7; i++) {
+      const date = new Date(startOfWeek)
+      date.setDate(startOfWeek.getDate() + i)
+
+      const habitsForDay = this.habits.filter(
+        (habit) => habit.days && Array.isArray(habit.days) && habit.days.includes(date.getDay()),
+      )
+      const completedForDay = habitsForDay.filter((habit) => this.isHabitCompleted(habit.id, date)).length
+
+      const percentage = habitsForDay.length > 0 ? (completedForDay / habitsForDay.length) * 100 : 0
+      const height = Math.max(4, percentage)
+
+      html += `<div class="chart-bar" 
+                        style="height: ${height}%" 
+                        data-day="${dayNames[i]}"
+                        title="${completedForDay}/${habitsForDay.length} completados"></div>`
     }
 
-    container.innerHTML = categoryStats
-      .map(
-        (category) => `
-    <div class="category-item">
-      <div>
-        <div class="category-name">${category.name}</div>
-        <small>${category.habits} hábito${category.habits !== 1 ? "s" : ""}</small>
-      </div>
-      <div class="category-progress">
-        <div class="category-bar">
-          <div class="category-fill" style="width: ${category.completionRate}%"></div>
-        </div>
-        <strong>${category.completionRate}%</strong>
-      </div>
-    </div>
-  `,
-      )
-      .join("")
+    container.innerHTML = html
   }
 
-  renderConsistentHabits() {
-    const container = document.getElementById("consistentHabits")
+  renderTopHabits() {
+    const container = document.getElementById("topHabits")
 
-    const consistentHabits = this.habits
+    const habitStats = this.habits
       .map((habit) => {
-        const longestStreak = this.calculateLongestStreak(habit.id)
-        const currentStreak = this.calculateStreak(habit.id)
-        const monthlyCompletion = this.calculateMonthlyCompletion(habit.id)
-
-        // Puntuación de consistencia basada en racha actual, racha más larga y completación mensual
-        const consistencyScore = currentStreak * 0.4 + longestStreak * 0.3 + monthlyCompletion * 0.3
+        const streak = this.calculateStreak(habit.id)
+        const weeklyProgress = this.calculateWeeklyProgress(habit.id)
+        const completionRate =
+          weeklyProgress.total > 0 ? Math.round((weeklyProgress.completed / weeklyProgress.total) * 100) : 0
 
         return {
           ...habit,
-          consistencyScore: Math.round(consistencyScore),
-          currentStreak,
-          longestStreak,
-          monthlyCompletion,
+          streak,
+          completionRate,
+          score: streak * 2 + completionRate,
         }
       })
-      .sort((a, b) => b.consistencyScore - a.consistencyScore)
+      .sort((a, b) => b.score - a.score)
       .slice(0, 5)
 
-    if (consistentHabits.length === 0) {
+    if (habitStats.length === 0) {
       container.innerHTML = '<p class="empty-state">No hay datos suficientes aún</p>'
       return
     }
 
-    container.innerHTML = consistentHabits
+    container.innerHTML = habitStats
       .map(
         (habit) => `
-    <div class="top-habit-item">
-      <div>
-        <div class="top-habit-name">${habit.name}</div>
-        <small>🔥 ${habit.currentStreak} días actuales</small>
-      </div>
-      <div class="top-habit-score">${habit.consistencyScore} pts</div>
-    </div>
-  `,
+          <div class="top-habit-item">
+              <div class="top-habit-name">${habit.name}</div>
+              <div class="top-habit-score">${habit.completionRate}% esta semana</div>
+          </div>
+      `,
       )
       .join("")
+  }
+
+  // En la clase HabitTracker, reemplazar exportData():
+  exportData() {
+    const data = getUnifiedData()
+
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement("a")
+    a.href = url
+    a.download = `productividad-backup-${new Date().toISOString().split("T")[0]}.json`
+    a.click()
+    URL.revokeObjectURL(url)
+
+    this.showHabitToast("Todos los datos exportados correctamente", "success")
   }
 
   exportStats() {
@@ -1105,9 +1377,8 @@ class HabitTracker {
         (date) => this.completions[date] && this.completions[date][habit.id],
       ).length
 
-      const longestStreak = this.calculateLongestStreak(habit.id)
+      const longestStreak = this.calculateStreak(habit.id)
       const currentStreak = this.calculateStreak(habit.id)
-      const monthlyCompletion = this.calculateMonthlyCompletion(habit.id)
       const weeklyProgress = this.calculateWeeklyProgress(habit.id)
 
       return {
@@ -1115,9 +1386,7 @@ class HabitTracker {
         categoria: habit.category,
         diasProgramados: habit.days.map((d) => this.getDayName(d)).join(", "),
         totalDiasCompletados: completedDays,
-        rachaMasLarga: longestStreak,
         rachaActual: currentStreak,
-        completacionMensual: `${monthlyCompletion}%`,
         completacionSemanal: `${weeklyProgress.completed}/${weeklyProgress.total}`,
         metaSemanal: habit.goal || "No definida",
         horarioRecordatorio: habit.time || "No definido",
@@ -1126,21 +1395,6 @@ class HabitTracker {
       }
     })
 
-    // Estadísticas generales
-    const generalStats = {
-      totalHabitos: this.habits.length,
-      habitosHoy: this.getHabitsForToday().length,
-      completadosHoy: this.getHabitsForToday().filter((h) => this.isHabitCompleted(h.id, this.currentDate)).length,
-      rachaMasLarga: Math.max(0, ...this.habits.map((h) => this.calculateLongestStreak(h.id))),
-      promedioMensual:
-        Math.round(
-          this.habits.map((h) => this.calculateMonthlyCompletion(h.id)).reduce((a, b) => a + b, 0) / this.habits.length,
-        ) || 0,
-    }
-
-    const categoryStats = this.getCategoryStats()
-
-    // Crear contenido del archivo TXT
     const txtContent = `
 ╔══════════════════════════════════════════════════════════════╗
 ║                    📊 ESTADÍSTICAS DE HÁBITOS                ║
@@ -1149,17 +1403,10 @@ class HabitTracker {
 
 📈 RESUMEN GENERAL
 ═══════════════════════════════════════════════════════════════
-• Total de hábitos: ${generalStats.totalHabitos}
-• Hábitos programados hoy: ${generalStats.habitosHoy}
-• Completados hoy: ${generalStats.completadosHoy}/${generalStats.habitosHoy}
-• Racha más larga: ${generalStats.rachaMasLarga} días
-• Promedio mensual: ${generalStats.promedioMensual}%
-
-📂 ESTADÍSTICAS POR CATEGORÍA
-═══════════════════════════════════════════════════════════════
-${categoryStats
-  .map((cat) => `• ${cat.name}: ${cat.completionRate}% (${cat.habits} hábito${cat.habits !== 1 ? "s" : ""})`)
-  .join("\n")}
+• Total de hábitos: ${this.habits.length}
+• Hábitos programados hoy: ${this.getHabitsForToday().length}
+• Completados hoy: ${this.getHabitsForToday().filter((h) => this.isHabitCompleted(h.id, this.currentDate)).length}/${this.getHabitsForToday().length}
+• Racha más larga: ${Math.max(0, ...this.habits.map((habit) => this.calculateStreak(habit.id)))} días
 
 🎯 DETALLE DE HÁBITOS
 ═══════════════════════════════════════════════════════════════
@@ -1170,9 +1417,7 @@ ${stats
    Categoría: ${habit.categoria}
    Días programados: ${habit.diasProgramados}
    Total completados: ${habit.totalDiasCompletados} días
-   Racha más larga: ${habit.rachaMasLarga} días
    Racha actual: ${habit.rachaActual} días
-   Completación mensual: ${habit.completacionMensual}
    Completación semanal: ${habit.completacionSemanal}
    Meta semanal: ${habit.metaSemanal}
    Recordatorio: ${habit.horarioRecordatorio}
@@ -1182,19 +1427,6 @@ ${stats
 `,
   )
   .join("")}
-
-🏆 HÁBITOS MÁS CONSISTENTES
-═══════════════════════════════════════════════════════════════
-${this.habits
-  .map((habit) => {
-    const consistency =
-      this.calculateStreak(habit.id) + this.calculateLongestStreak(habit.id) + this.calculateMonthlyCompletion(habit.id)
-    return { name: habit.name, score: consistency }
-  })
-  .sort((a, b) => b.score - a.score)
-  .slice(0, 5)
-  .map((habit, index) => `${index + 1}. ${habit.name} (${Math.round(habit.score)} puntos)`)
-  .join("\n")}
 
 ═══════════════════════════════════════════════════════════════
 Generado por Tracker de Hábitos - ${new Date().toLocaleString("es-ES")}
@@ -1209,28 +1441,66 @@ Generado por Tracker de Hábitos - ${new Date().toLocaleString("es-ES")}
     a.click()
     URL.revokeObjectURL(url)
 
-    this.showToast("Estadísticas exportadas en formato TXT", "success")
+    this.showHabitToast("Estadísticas exportadas en formato TXT", "success")
   }
 
-  convertToCSV(data) {
-    if (data.length === 0) return ""
+  // En la clase HabitTracker, reemplazar importData():
+  importData(e) {
+    const file = e.target.files[0]
+    if (!file) return
 
-    const headers = Object.keys(data[0])
-    const csvHeaders = headers.join(",")
+    const reader = new FileReader()
+    reader.onload = (event) => {
+      try {
+        const data = JSON.parse(event.target.result)
 
-    const csvRows = data.map((row) =>
-      headers
-        .map((header) => {
-          const value = row[header]
-          return typeof value === "string" && value.includes(",") ? `"${value}"` : value
-        })
-        .join(","),
-    )
+        // Verificar si es el formato nuevo unificado o el formato antiguo
+        if (data.habits !== undefined || data.journalEntries !== undefined || data.goals !== undefined) {
+          if (confirm("¿Quieres reemplazar todos tus datos actuales? Esta acción no se puede deshacer.")) {
+            // Migrar datos del formato antiguo si es necesario
+            const unifiedData = {
+              habits: data.habits || [],
+              completions: data.completions || {},
+              journalEntries: data.journalEntries || JSON.parse(localStorage.getItem("journalEntries") || "[]"),
+              goals: data.goals || JSON.parse(localStorage.getItem("goals") || "[]"),
+              version: "3.0",
+              lastUpdated: new Date().toISOString(),
+            }
 
-    return [csvHeaders, ...csvRows].join("\n")
+            localStorage.setItem("productivityData", JSON.stringify(unifiedData))
+
+            // Limpiar datos antiguos
+            localStorage.removeItem("habits")
+            localStorage.removeItem("completions")
+            localStorage.removeItem("journalEntries")
+            localStorage.removeItem("goals")
+
+            // Recargar datos
+            const newData = getUnifiedData()
+            this.habits = newData.habits
+            this.completions = newData.completions
+
+            this.initHabits()
+            loadJournalEntries()
+            loadGoals()
+            renderJournalStats()
+
+            this.showHabitToast("Todos los datos importados correctamente", "success")
+          }
+        } else {
+          this.showHabitToast("Archivo de datos inválido", "error")
+        }
+      } catch (error) {
+        this.showHabitToast("Error al leer el archivo", "error")
+      }
+    }
+    reader.readAsText(file)
+
+    // Reset file input
+    e.target.value = ""
   }
 
-  showToast(message, type = "success") {
+  showHabitToast(message, type = "success") {
     const container = document.getElementById("toastContainer")
     const toast = document.createElement("div")
     toast.className = `toast ${type}`
@@ -1243,78 +1513,253 @@ Generado por Tracker de Hábitos - ${new Date().toLocaleString("es-ES")}
     }, 3000)
   }
 
-  exportData() {
-    const data = {
-      habits: this.habits,
-      completions: this.completions,
-      exportDate: new Date().toISOString(),
-      version: "2.0",
-    }
-
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement("a")
-    a.href = url
-    a.download = `habitos-backup-${new Date().toISOString().split("T")[0]}.json`
-    a.click()
-    URL.revokeObjectURL(url)
-
-    this.showToast("Datos exportados correctamente", "success")
-  }
-
-  importData(e) {
-    const file = e.target.files[0]
-    if (!file) return
-
-    const reader = new FileReader()
-    reader.onload = (event) => {
-      try {
-        const data = JSON.parse(event.target.result)
-
-        if (data.habits && data.completions) {
-          if (confirm("¿Quieres reemplazar todos tus datos actuales? Esta acción no se puede deshacer.")) {
-            this.habits = data.habits
-            this.completions = data.completions
-            this.saveToStorage()
-            this.init() // Re-initialize everything
-            this.showToast("Datos importados correctamente", "success")
-          }
-        } else {
-          this.showToast("Archivo de datos inválido", "error")
-        }
-      } catch (error) {
-        this.showToast("Error al leer el archivo", "error")
-      }
-    }
-    reader.readAsText(file)
-
-    // Reset file input
-    e.target.value = ""
-  }
-
-  saveToStorage() {
+  // En la clase HabitTracker, reemplazar saveHabitsToStorage():
+  saveHabitsToStorage() {
     try {
-      localStorage.setItem("habits", JSON.stringify(this.habits))
-      localStorage.setItem("completions", JSON.stringify(this.completions))
+      saveUnifiedData({
+        habits: this.habits,
+        completions: this.completions,
+      })
     } catch (error) {
-      this.showToast("Error al guardar datos", "error")
+      this.showHabitToast("Error al guardar datos", "error")
     }
   }
 }
 
-// Initialize the app
-const habitTracker = new HabitTracker()
+// Inicializar el tracker de hábitos cuando se carga la página
+let habitTracker
+document.addEventListener("DOMContentLoaded", () => {
+  // Esperar un poco para asegurar que todo esté cargado
+  setTimeout(() => {
+    habitTracker = new HabitTracker()
+  }, 100)
+})
 
-// Service Worker for offline functionality (optional)
-if ("serviceWorker" in navigator) {
-  window.addEventListener("load", () => {
-    navigator.serviceWorker
-      .register("/sw.js")
-      .then((registration) => {
-        console.log("SW registered: ", registration)
-      })
-      .catch((registrationError) => {
-        console.log("SW registration failed: ", registrationError)
-      })
+// ==================== ESTADÍSTICAS DEL JOURNAL ====================
+
+function setupJournalTabs() {
+  document.querySelectorAll(".journal-tab-btn").forEach((btn) => {
+    btn.addEventListener("click", (e) => {
+      const tabName = e.target.dataset.tab
+
+      // Cambiar tabs activos
+      document.querySelectorAll(".journal-tab-btn").forEach((b) => b.classList.remove("active"))
+      document.querySelectorAll(".journal-tab-content").forEach((c) => c.classList.remove("active"))
+
+      e.target.classList.add("active")
+      document.getElementById(`journal-${tabName}-tab`).classList.add("active")
+
+      if (tabName === "stats") {
+        renderJournalStats()
+      }
+    })
   })
+}
+
+function renderJournalStats() {
+  const entries = getJournalEntries()
+
+  // Estadísticas generales
+  document.getElementById("totalEntries").textContent = entries.length
+
+  const uniqueDays = new Set(entries.map((entry) => entry.date.split("T")[0])).size
+  document.getElementById("activeDays").textContent = uniqueDays
+
+  // Estado de ánimo promedio
+  const moodValues = { "😍 Excelente": 5, "😊 Bueno": 4, "😐 Meh": 3, "😞 Malo": 2, "😡 Horrible": 1 }
+  const entriesWithMood = entries.filter((entry) => entry.mood)
+
+  if (entriesWithMood.length > 0) {
+    const avgMood =
+      entriesWithMood.reduce((sum, entry) => sum + (moodValues[entry.mood] || 3), 0) / entriesWithMood.length
+    const avgMoodText = Object.keys(moodValues).find((key) => moodValues[key] === Math.round(avgMood)) || "😐 Meh"
+    document.getElementById("averageMood").textContent = avgMoodText.split(" ")[0]
+  } else {
+    document.getElementById("averageMood").textContent = "-"
+  }
+
+  // Renderizar gráficos
+  renderMoodChart(entries)
+  renderTopTags(entries)
+  renderMoodDistribution(entries)
+}
+
+function renderMoodChart(entries) {
+  const container = document.getElementById("moodChart")
+  const moodValues = { "😍 Excelente": 5, "😊 Bueno": 4, "😐 Meh": 3, "😞 Malo": 2, "😡 Horrible": 1 }
+
+  // Obtener últimos 14 días
+  const last14Days = []
+  for (let i = 13; i >= 0; i--) {
+    const date = new Date()
+    date.setDate(date.getDate() - i)
+    last14Days.push(date.toISOString().split("T")[0])
+  }
+
+  let html = ""
+  last14Days.forEach((dateStr) => {
+    const dayEntries = entries.filter((entry) => entry.date.split("T")[0] === dateStr && entry.mood)
+    let avgMood = 0
+
+    if (dayEntries.length > 0) {
+      avgMood = dayEntries.reduce((sum, entry) => sum + (moodValues[entry.mood] || 3), 0) / dayEntries.length
+    }
+
+    const height = avgMood > 0 ? (avgMood / 5) * 100 : 5
+    const date = new Date(dateStr)
+    const dayName = date.toLocaleDateString("es-ES", { weekday: "short", day: "numeric" })
+
+    html += `<div class="mood-bar" 
+                  style="height: ${height}%" 
+                  data-date="${dayName}"
+                  title="Promedio: ${avgMood.toFixed(1)}/5"></div>`
+  })
+
+  container.innerHTML = html
+}
+
+function renderTopTags(entries) {
+  const container = document.getElementById("topTags")
+  const tagCounts = {}
+
+  entries.forEach((entry) => {
+    if (entry.tags) {
+      entry.tags.forEach((tag) => {
+        tagCounts[tag] = (tagCounts[tag] || 0) + 1
+      })
+    }
+  })
+
+  const sortedTags = Object.entries(tagCounts)
+    .sort(([, a], [, b]) => b - a)
+    .slice(0, 10)
+
+  if (sortedTags.length === 0) {
+    container.innerHTML = '<p style="text-align: center; color: #666;">No hay etiquetas aún</p>'
+    return
+  }
+
+  container.innerHTML = sortedTags
+    .map(
+      ([tag, count]) => `
+      <div class="tag-stat-item">
+        <span class="tag-name">${tag}</span>
+        <span class="tag-count">${count}</span>
+      </div>
+    `,
+    )
+    .join("")
+}
+
+function renderMoodDistribution(entries) {
+  const container = document.getElementById("moodDistribution")
+  const moodCounts = {
+    "😍 Excelente": 0,
+    "😊 Bueno": 0,
+    "😐 Meh": 0,
+    "😞 Malo": 0,
+    "😡 Horrible": 0,
+  }
+
+  entries.forEach((entry) => {
+    if (entry.mood && moodCounts.hasOwnProperty(entry.mood)) {
+      moodCounts[entry.mood]++
+    }
+  })
+
+  const total = Object.values(moodCounts).reduce((sum, count) => sum + count, 0)
+
+  if (total === 0) {
+    container.innerHTML = '<p style="text-align: center; color: #666;">No hay datos de estado de ánimo aún</p>'
+    return
+  }
+
+  container.innerHTML = Object.entries(moodCounts)
+    .map(([mood, count]) => {
+      const percentage = (count / total) * 100
+      const [emoji, text] = mood.split(" ")
+
+      return `
+        <div class="mood-dist-item">
+          <span class="mood-dist-emoji">${emoji}</span>
+          <div class="mood-dist-bar-container">
+            <div class="mood-dist-bar" style="width: ${percentage}%"></div>
+          </div>
+          <span class="mood-dist-count">${count}</span>
+        </div>
+      `
+    })
+    .join("")
+}
+
+function getDeadlineInfo(deadline) {
+  if (!deadline) {
+    return { html: "" }
+  }
+
+  const deadlineDate = new Date(deadline)
+  const today = new Date()
+  const diffTime = deadlineDate - today
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+
+  let countdownClass = "goal-countdown"
+  let countdownText = ""
+
+  if (diffDays < 0) {
+    countdownClass += " completed"
+    countdownText = `⏰ Venció hace ${Math.abs(diffDays)} días`
+  } else if (diffDays === 0) {
+    countdownClass += " urgent"
+    countdownText = "⏰ ¡Hoy es el límite!"
+  } else if (diffDays <= 3) {
+    countdownClass += " urgent"
+    countdownText = `⏰ ${diffDays} días restantes`
+  } else {
+    countdownText = `⏰ ${diffDays} días restantes`
+  }
+
+  const deadlineFormatted = deadlineDate.toLocaleDateString("es-ES", {
+    day: "numeric",
+    month: "short",
+  })
+
+  return {
+    html: `
+      <span class="goal-deadline">📅 ${deadlineFormatted}</span>
+      <span class="${countdownClass}">${countdownText}</span>
+    `,
+  }
+}
+
+// Agregar función de migración automática al inicializar la app:
+function migrateOldData() {
+  // Verificar si existen datos en el formato antiguo
+  const oldHabits = localStorage.getItem("habits")
+  const oldCompletions = localStorage.getItem("completions")
+  const oldJournal = localStorage.getItem("journalEntries")
+  const oldGoals = localStorage.getItem("goals")
+  const newData = localStorage.getItem("productivityData")
+
+  if (!newData && (oldHabits || oldCompletions || oldJournal || oldGoals)) {
+    console.log("Migrando datos del formato antiguo...")
+
+    const unifiedData = {
+      habits: JSON.parse(oldHabits || "[]"),
+      completions: JSON.parse(oldCompletions || "{}"),
+      journalEntries: JSON.parse(oldJournal || "[]"),
+      goals: JSON.parse(oldGoals || "[]"),
+      version: "3.0",
+      lastUpdated: new Date().toISOString(),
+    }
+
+    localStorage.setItem("productivityData", JSON.stringify(unifiedData))
+
+    // Limpiar datos antiguos
+    localStorage.removeItem("habits")
+    localStorage.removeItem("completions")
+    localStorage.removeItem("journalEntries")
+    localStorage.removeItem("goals")
+
+    showMessage("📦 Datos migrados al nuevo formato unificado")
+  }
 }
